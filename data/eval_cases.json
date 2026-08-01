@@ -1,0 +1,460 @@
+[
+  {
+    "id": "tp-anarchism-hashtag",
+    "text": "Reading circle tonight. #Anarchism is about mutual care, not chaos.",
+    "expected": true,
+    "note": "hashtag strong",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-mutual-aid",
+    "text": "Neighborhood mutual aid fridge restocked \u2014 take what you need, share what you can.",
+    "expected": true,
+    "note": "mutual aid praxis",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-anarcho-syndicalism",
+    "text": "Anarcho-syndicalism means workers run the workplace without bosses.",
+    "expected": true,
+    "note": "tendency name",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "tp-dual-power",
+    "text": "Dual power projects are how we build the new world in the shell of the old.",
+    "expected": true,
+    "note": "dual power",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-food-not-bombs",
+    "text": "Food Not Bombs serving in the park at noon \u2014 all are welcome.",
+    "expected": true,
+    "note": "FNB",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-no-gods-no-masters",
+    "text": "No gods, no masters \u2014 organize with your neighbors.",
+    "expected": true,
+    "note": "classic slogan",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "tp-crimethinc",
+    "text": "New CrimethInc zine on ICE watch lessons from the Bay.",
+    "expected": true,
+    "note": "publisher",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-iww",
+    "text": "Talk to the IWW if you want a union that doesn't partner with the bosses.",
+    "expected": true,
+    "note": "IWW",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-kropotkin",
+    "text": "Kropotkin's Mutual Aid still explains cooperation better than social Darwinism.",
+    "expected": true,
+    "note": "classic theorist",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "tp-abolish-capitalism",
+    "text": "We can abolish capitalism and the state \u2014 start with tenants unions and workplaces.",
+    "expected": true,
+    "note": "abolish pair",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-ak-press",
+    "text": "Preorder the new title from AK Press \u2014 worker-run publishing since 1990.",
+    "expected": true,
+    "note": "publisher",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-infoshop-event",
+    "text": "Saturday teach-in at the infoshop \u2014 doors at 6, zine distro after.",
+    "expected": true,
+    "note": "event+venue",
+    "signal": "event",
+    "bucket": "regional_event",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-bookfair",
+    "text": "This weekend at the anarchist bookfair: workshops on dual power and childcare collectives.",
+    "expected": true,
+    "note": "bookfair",
+    "signal": "event",
+    "bucket": "regional_event",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "tp-direct-action-context",
+    "text": "Direct action gets the goods when mutual aid networks coordinate.",
+    "expected": true,
+    "note": "ambiguous+context",
+    "signal": "text",
+    "bucket": "ambiguous_with_context",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-libertarian-left",
+    "text": "Left-libertarian politics means freedom from bosses and cops, not landlords with vibes.",
+    "expected": true,
+    "note": "left libertarian",
+    "signal": "text",
+    "bucket": "ambiguous_with_context",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-autonomous-commune",
+    "text": "The autonomous commune runs on horizontal assemblies and shared tools.",
+    "expected": true,
+    "note": "autonomous+horizontal",
+    "signal": "text",
+    "bucket": "ambiguous_with_context",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "fp-ancap",
+    "text": "Anarcho-capitalism is the only real liberty \u2014 read Rothbard.",
+    "expected": false,
+    "note": "ancap",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-ancap-short",
+    "text": "Ancap tip: privatization fixes everything.",
+    "expected": false,
+    "note": "ancap short",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "fp-sons-of-anarchy",
+    "text": "Rewatching Sons of Anarchy season 3 tonight.",
+    "expected": false,
+    "note": "TV show",
+    "signal": "text",
+    "bucket": "skyfeed_fp",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-anarchy-online",
+    "text": "Who still plays Anarchy Online in 2026?",
+    "expected": false,
+    "note": "game",
+    "signal": "text",
+    "bucket": "skyfeed_fp",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-defi",
+    "text": "Decentralized finance (DeFi) yields look great this week on the new web3 protocol.",
+    "expected": false,
+    "note": "crypto",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-this-is-anarchy",
+    "text": "The crowd rushed the field \u2014 this is anarchy!",
+    "expected": false,
+    "note": "chaos usage",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "fp-state-of-anarchy",
+    "text": "Officials say the city has descended into a state of anarchy after the blackout.",
+    "expected": false,
+    "note": "news chaos",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-mises",
+    "text": "Lecture tonight at the Mises Institute on free-market anarchism.",
+    "expected": false,
+    "note": "right libertarian institute",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-bare-anarchy",
+    "text": "My desktop is pure anarchy after that update.",
+    "expected": false,
+    "note": "bare anarchy no context",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-bare-direct-action",
+    "text": "Direct action workshop \u2014 details TBA.",
+    "expected": false,
+    "note": "ambiguous alone (no AI in eval)",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-bare-socialism",
+    "text": "Democratic socialism is polling well this cycle.",
+    "expected": false,
+    "note": "broader left",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "fp-nft-decentral",
+    "text": "Our NFT drop is fully decentralized on web3 rails.",
+    "expected": false,
+    "note": "nft+decentral",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-critique-ancap",
+    "text": "Anarchism is not anarcho-capitalism. Anarchists abolish bosses and landlords.",
+    "expected": true,
+    "note": "critique keeps",
+    "signal": "text",
+    "bucket": "strong_positive",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-allowlist-handle",
+    "text": "Our newsletter is out for subscribers.",
+    "expected": true,
+    "note": "allowlist handle recall",
+    "signal": "author",
+    "bucket": "local_org_no_placename",
+    "split": "dev",
+    "regression": true,
+    "author_handle": "crimethinc.com"
+  },
+  {
+    "id": "tp-soft-prior-direct-action",
+    "text": "Direct action works when neighbors show up.",
+    "expected": true,
+    "note": "soft prior unlocks ambiguous",
+    "signal": "author",
+    "bucket": "author_soft_prior",
+    "split": "dev",
+    "regression": true,
+    "author_did": "did:plc:softpriortest0000000000001",
+    "soft_prior": true
+  },
+  {
+    "id": "fp-weather",
+    "text": "Sunny and 72 degrees \u2014 perfect picnic weather.",
+    "expected": false,
+    "note": "unrelated",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-sports",
+    "text": "What a comeback in the third quarter!",
+    "expected": false,
+    "note": "sports",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "fp-generic-freedom",
+    "text": "Freedom isn't free.",
+    "expected": false,
+    "note": "empty slogan",
+    "signal": "text",
+    "bucket": "precision_gate",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "gap-ai-horizontal-housing",
+    "text": "Our co-op shares tools citywide and refuses landlords \u2014 join the open assembly Thursday.",
+    "expected": true,
+    "note": "ambiguous co-op without explicit anarchist keywords; AI may keep",
+    "signal": "text",
+    "bucket": "ambiguous_classifier",
+    "split": "dev",
+    "regression": false
+  },
+  {
+    "id": "tp-allowlist-akpress",
+    "text": "Shop update: restock day.",
+    "expected": true,
+    "note": "allowlist handle",
+    "signal": "author",
+    "bucket": "local_org_no_placename",
+    "split": "dev",
+    "regression": true,
+    "author_handle": "akpress.org"
+  },
+  {
+    "id": "tp-allowlist-portlandiww",
+    "text": "Office hours Wednesday.",
+    "expected": true,
+    "note": "allowlist handle",
+    "signal": "author",
+    "bucket": "local_org_no_placename",
+    "split": "holdout",
+    "regression": true,
+    "author_handle": "portlandiww.bsky.social"
+  },
+  {
+    "id": "tp-allowlist-fnb",
+    "text": "See you in the park.",
+    "expected": true,
+    "note": "allowlist handle",
+    "signal": "author",
+    "bucket": "local_org_no_placename",
+    "split": "holdout",
+    "regression": true,
+    "author_handle": "food-not-bombs-rp.bsky.social"
+  },
+  {
+    "id": "tp-fnb-event",
+    "text": "Food Not Bombs serving tomorrow at noon \u2014 join us.",
+    "expected": true,
+    "note": "FNB event",
+    "signal": "event",
+    "bucket": "regional_event",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-mutual-aid-distro-event",
+    "text": "Mutual aid distro this weekend \u2014 doors at 2.",
+    "expected": true,
+    "note": "distro event",
+    "signal": "event",
+    "bucket": "regional_event",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "tp-rrfm-event",
+    "text": "Really Really Free Market this Saturday in the park \u2014 bring what you can.",
+    "expected": true,
+    "note": "RRFM",
+    "signal": "event",
+    "bucket": "regional_event",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "tp-ai-holdout-co-op",
+    "text": "Neighborhood co-op just voted out the board and opened membership to tenants.",
+    "expected": true,
+    "note": "AI recall gap holdout",
+    "signal": "text",
+    "bucket": "ambiguous_classifier",
+    "split": "holdout",
+    "regression": false
+  },
+  {
+    "id": "fp-ai-punk-noise",
+    "text": "Punk show was loud and messy.",
+    "expected": false,
+    "note": "ambiguous punk should drop offline",
+    "signal": "text",
+    "bucket": "ambiguous_classifier",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-ai-decentralized-tech",
+    "text": "We decentralized our microservice architecture this sprint.",
+    "expected": false,
+    "note": "tech decentralize",
+    "signal": "text",
+    "bucket": "ambiguous_classifier",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "tp-soft-prior-anarchy",
+    "text": "This neighborhood feels like anarchy in the best way.",
+    "expected": true,
+    "note": "soft prior anarchy",
+    "signal": "author",
+    "bucket": "author_soft_prior",
+    "split": "holdout",
+    "regression": true,
+    "author_did": "did:plc:softpriortest0000000000002",
+    "soft_prior": true
+  }
+]

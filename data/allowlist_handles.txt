@@ -1,0 +1,22 @@
+# Anarchist-aligned accounts whose non-reply posts are always indexed.
+# Handles are matched case-insensitively when available; Jetstream ingest uses
+# DIDs — keep data/allowlist_dids.txt in sync with:
+#   uv run python scripts/resolve_allowlist_dids.py
+#
+# Curation bar: prefer high signal/noise publishers, collectives, mutual-aid
+# projects, and organizers whose recent posts are mostly human-written and
+# values-aligned (decentralize political power and capital). Exclude firehose
+# volume, pure drama accounts, and ancap/right-"libertarian" voices.
+# Screen candidates with:
+#   uv run python scripts/screen_allowlist_candidates.py --from-file …
+#
+# Only include handles that resolve on Bluesky AppView.
+
+# --- Publishers / media ---
+crimethinc.com
+akpress.org
+burningbooks.bsky.social
+
+# --- Organizing / mutual aid ---
+portlandiww.bsky.social
+food-not-bombs-rp.bsky.social

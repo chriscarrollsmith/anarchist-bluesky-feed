@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "notes": "Surface-form → topic entity map. region=local keeps; region=other drops. Longest match wins.",
+  "entities": [
+    {
+      "id": "food_not_bombs",
+      "region": "local",
+      "surfaces": ["food not bombs", "foodnotbombs"]
+    },
+    {
+      "id": "crimethinc",
+      "region": "local",
+      "surfaces": ["crimethinc", "crimeth.inc"]
+    },
+    {
+      "id": "ak_press",
+      "region": "local",
+      "surfaces": ["ak press"]
+    },
+    {
+      "id": "black_rose_anarchist_federation",
+      "region": "local",
+      "surfaces": ["black rose anarchist federation", "black rose federation"]
+    },
+    {
+      "id": "institute_for_anarchist_studies",
+      "region": "local",
+      "surfaces": ["institute for anarchist studies"]
+    },
+    {
+      "id": "anarcho_capitalism",
+      "region": "other",
+      "surfaces": ["anarcho-capitalism", "anarcho capitalism", "ancap", "anarcho-capitalist"]
+    },
+    {
+      "id": "sons_of_anarchy",
+      "region": "other",
+      "surfaces": ["sons of anarchy"]
+    },
+    {
+      "id": "anarchy_online",
+      "region": "other",
+      "surfaces": ["anarchy online"]
+    },
+    {
+      "id": "mises_institute",
+      "region": "other",
+      "surfaces": ["mises institute"]
+    }
+  ]
+}

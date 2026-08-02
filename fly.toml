@@ -1,0 +1,52 @@
+# fly.toml app configuration file for anarchist-bluesky-feed
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+
+app = "anarchist-bluesky-feed"
+primary_region = "ewr"
+
+[build]
+
+[env]
+  FEEDGEN_HOSTNAME = "anarchist-bluesky-feed.fly.dev"
+  HOSTNAME = "anarchist-bluesky-feed.fly.dev"
+  # Replace after publish_feed.py creates the generator record.
+  FEED_URI = "at://did:plc:REPLACE/app.bsky.feed.generator/anarchism"
+  SERVICE_DID = "did:web:anarchist-bluesky-feed.fly.dev"
+  DATABASE_PATH = "/data/feed_database.db"
+  IGNORE_REPLY_POSTS = "true"
+  IGNORE_ARCHIVED_POSTS = "true"
+  POST_RETENTION_DAYS = "7"
+  JETSTREAM_URL = "wss://jetstream2.us-east.bsky.network/subscribe"
+  PORT = "8080"
+  LOG_LEVEL = "INFO"
+  CLASSIFIER_ENABLED = "true"
+  CLASSIFIER_MODEL = "deepseek-v4-flash"
+  CLASSIFIER_THRESHOLD = "0.72"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    # Uvicorn + Peewee import can exceed 20s on a cold shared-cpu machine; a short
+    # grace makes Fly mark the proxy unhealthy and AppView fails did:web resolve.
+    grace_period = "60s"
+    method = "GET"
+    path = "/healthz"
+
+[[mounts]]
+  source = "feed_data"
+  destination = "/data"
+  initial_size = "1gb"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

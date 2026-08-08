@@ -40,6 +40,7 @@ DEFAULT_SOLICIT_MAX = 0.35
 DEFAULT_COMPOSITE_MIN = 0.68
 DEFAULT_TIMEOUT_S = 8.0
 DEFAULT_MAX_TEXT_CHARS = 1200
+RUBRIC_VERSION = 'quality-v1'
 
 THEMATIC_WEIGHT = 0.45
 VALENCE_WEIGHT = 0.25
@@ -84,7 +85,7 @@ Also set keep=false for category errors regardless of scores:
 - generic left slogans with no anarchist or anti-authoritarian signal
 - authoritarian state-socialist celebration of centralized power
 
-Return JSON only:
+Return JSON only with these exact keys:
 {"keep": true|false,
  "thematic_fit": 0.0-1.0,
  "positive_valence": 0.0-1.0,
@@ -92,7 +93,7 @@ Return JSON only:
  "solicit": 0.0-1.0,
  "rationale": "<short reason>"}
 
-Prefer precision when unsure.
+Do not rename keys (especially thematic_fit). Prefer precision when unsure.
 """
 
 
@@ -240,7 +241,7 @@ class DeepSeekClassifier:
         assert self.thresholds is not None
         clipped = text[: self.max_text_chars]
         cache_key = hashlib.sha256(
-            f'{self.model}|{self.thresholds.cache_token()}|{term}|'
+            f'{self.model}|{RUBRIC_VERSION}|{self.thresholds.cache_token()}|{term}|'
             f'{int(has_event_cue)}|{int(has_local_venue)}|{clipped}'.encode()
         ).hexdigest()
         assert self._cache is not None
@@ -380,16 +381,53 @@ def _payload_float(payload: dict[str, Any], key: str, default: float) -> float:
         return _clamp01(default)
 
 
+def _lookup_dim(
+    payload: dict[str, Any],
+    names: tuple[str, ...],
+    *,
+    default: float,
+    prefix: str | None = None,
+) -> float:
+    """Read a dimension, accepting aliases and minor key typos."""
+    for name in names:
+        if name in payload:
+            return _payload_float(payload, name, default)
+    if prefix:
+        for key in payload:
+            if isinstance(key, str) and key.startswith(prefix) and key not in names:
+                return _payload_float(payload, key, default)
+    return _clamp01(default)
+
+
 def grades_from_payload(payload: dict[str, Any]) -> GradeBreakdown:
     """Parse multi-dim grades; legacy ``score`` maps onto thematic/valence/wow."""
     legacy = _payload_float(payload, 'score', 0.0)
     multi_keys = ('thematic_fit', 'positive_valence', 'wow', 'solicit')
-    has_multi = any(key in payload for key in multi_keys)
+    alias_keys = ('thematic', 'theme', 'values_alignment', 'valence', 'positive')
+    has_multi = any(key in payload for key in multi_keys) or any(
+        isinstance(key, str) and (key.startswith('thematic') or key in alias_keys)
+        for key in payload
+    )
     if has_multi:
-        thematic = _payload_float(payload, 'thematic_fit', legacy)
-        valence = _payload_float(payload, 'positive_valence', legacy)
-        wow = _payload_float(payload, 'wow', legacy)
-        solicit = _payload_float(payload, 'solicit', 0.0)
+        thematic = _lookup_dim(
+            payload,
+            ('thematic_fit', 'thematic', 'theme', 'values_alignment', 'score'),
+            default=legacy,
+            prefix='thematic',
+        )
+        valence = _lookup_dim(
+            payload,
+            ('positive_valence', 'valence', 'positive', 'score'),
+            default=legacy,
+            prefix='positive',
+        )
+        wow = _lookup_dim(payload, ('wow', 'wow_factor', 'score'), default=legacy)
+        solicit = _lookup_dim(
+            payload,
+            ('solicit', 'solicitation', 'money_ask', 'fundraising'),
+            default=0.0,
+            prefix='solicit',
+        )
     else:
         thematic = legacy
         valence = legacy

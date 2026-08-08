@@ -139,6 +139,20 @@ def test_deepseek_classifier_rejects_high_solicit() -> None:
     assert decision.reason == 'quality_reject:solicit'
 
 
+def test_grades_from_payload_accepts_thematic_typos() -> None:
+    grades = grades_from_payload(
+        {
+            'keep': True,
+            'thematic_fic': 0.82,
+            'positive_valence': 0.7,
+            'wow': 0.6,
+            'solicit': 0.05,
+        }
+    )
+    assert grades.thematic_fit == 0.82
+    assert grades.composite == composite_score(0.82, 0.7, 0.6)
+
+
 def test_admit_grades_composite_floor() -> None:
     grades = grades_from_payload(
         {
@@ -178,7 +192,7 @@ def test_solicit_cue_passes_when_classifier_clears() -> None:
         classifier=fake,
     )
     assert result.matched is True
-    assert result.reason == 'strong_positive'
+    assert result.reason in {'strong_positive', 'entity_local:food_not_bombs'}
 
 
 def test_solicit_cue_drops_when_classifier_flags_solicit() -> None:

@@ -1,13 +1,19 @@
-"""Second-pass values-alignment classifier (DeepSeek).
+"""Quality rubric classifier (DeepSeek).
 
 The regex floor in ``matcher.match_post`` keeps strong positives / hard
-negatives / allowlists / soft priors / definitive event+venue hits. Remaining
-ambiguous and near-miss candidates are scored here for prosocial anarchist
-values alignment via ``deepseek-v4-flash``.
+negatives / allowlists / soft priors / definitive event+venue hits. Ambiguous
+leftovers — and provisional keeps that look like money asks — are scored here
+on four dimensions via ``deepseek-v4-flash``:
+
+- thematic_fit: prosocial anarchist values alignment
+- positive_valence: constructive / generative tone
+- wow: humor, insight, craft, memorability
+- solicit: personal fundraising / extractive money-ask (inverted gate)
 
 Network calls are optional: when the classifier is disabled or no API key is
 configured, this module declines (``None``) so the matcher keeps its regex-floor
-drop reason. Tests inject a ``ClassifierBackend``.
+drop reason (or drops solicit-shaped provisional keeps). Tests inject a
+``ClassifierBackend``.
 """
 
 from __future__ import annotations
@@ -25,34 +31,93 @@ from typing import Any, Protocol
 
 DEFAULT_MODEL = 'deepseek-v4-flash'
 DEFAULT_API_URL = 'https://api.deepseek.com/v1/chat/completions'
+# Legacy single-score default; still used as fallback composite min.
 DEFAULT_THRESHOLD = 0.72
+DEFAULT_THEMATIC_MIN = 0.70
+DEFAULT_VALENCE_MIN = 0.55
+DEFAULT_WOW_MIN = 0.45
+DEFAULT_SOLICIT_MAX = 0.35
+DEFAULT_COMPOSITE_MIN = 0.68
 DEFAULT_TIMEOUT_S = 8.0
 DEFAULT_MAX_TEXT_CHARS = 1200
 
+THEMATIC_WEIGHT = 0.45
+VALENCE_WEIGHT = 0.25
+WOW_WEIGHT = 0.30
+
 SYSTEM_PROMPT = """\
-You score Bluesky posts for a prosocial anarchist feed.
+You score Bluesky posts for a curated prosocial anarchist feed that prefers
+high-quality, positive, memorable posts — not personal fundraising.
 
 Anarchism here means movements and projects that want to decentralize both
-political power and capital: mutual aid, dual power, horizontal organizing,
-worker autonomy, commons stewardship, anti-authoritarian and anti-capitalist
-practice, and celebrations of those currents.
+political power and capital: mutual aid praxis, dual power, horizontal
+organizing, worker autonomy, commons stewardship, anti-authoritarian and
+anti-capitalist practice, and celebrations of those currents.
 
-Return JSON only:
-{"keep": true|false, "score": 0.0-1.0, "rationale": "<short reason>"}
+Score each dimension in [0,1] using this shared scale:
+- 0.0–0.29 clear miss / opposite of the dimension
+- 0.30–0.49 weak / incidental
+- 0.50–0.69 present but thin
+- 0.70–0.84 solid, clear signal
+- 0.85–1.0 strong / exemplary
 
-keep=true when the post is substantially about or celebrating that anarchism
-(including adjacent praxis like Food Not Bombs, IWW, infoshops, bookfairs,
-CrimethInc, AK Press, social ecology) even if it never says "anarchism".
+Dimensions:
+- thematic_fit: how substantially the post is about or celebrating that
+  anarchism (including Food Not Bombs, IWW, infoshops, bookfairs, CrimethInc,
+  AK Press, social ecology) even if it never says "anarchism".
+- positive_valence: constructive, generative, solidarity-forward tone
+  (practical how-tos, joyful wins, witty demolition of hierarchy). Low for
+  doomspirals, factional pile-ons, or cruelty-as-politics. Grief paired with
+  constructive praxis can still score mid/high.
+- wow: humor, insight, craft, surprise, or memorable framing. Mid for
+  competent on-theme reportage; low for boilerplate slogans and link dumps.
+- solicit: personal / extractive money-ask intensity. HIGH for Venmo/CashApp/
+  GoFundMe/PayPal-me asks, "I'm short on rent", "mutual aid request" for an
+  individual. LOW for non-monetary mutual aid (fridge restock, skill share),
+  project updates, or announcing a collective org fundraiser as news (bail
+  fund, FNB kitchen goal) without a personal hardship pitch.
 
-keep=false for:
+Also set keep=false for category errors regardless of scores:
 - anarcho-capitalism / right-"libertarian" market fundamentalism
 - chaos / entertainment "anarchy" with no political content
 - crypto/Web3/DeFi "decentralized" jargon without anarchist values
 - generic left slogans with no anarchist or anti-authoritarian signal
 - authoritarian state-socialist celebration of centralized power
 
-score is values-alignment / relevancy in [0,1]. Prefer precision when unsure.
+Return JSON only:
+{"keep": true|false,
+ "thematic_fit": 0.0-1.0,
+ "positive_valence": 0.0-1.0,
+ "wow": 0.0-1.0,
+ "solicit": 0.0-1.0,
+ "rationale": "<short reason>"}
+
+Prefer precision when unsure.
 """
+
+
+@dataclass(frozen=True)
+class RubricThresholds:
+    thematic_min: float = DEFAULT_THEMATIC_MIN
+    valence_min: float = DEFAULT_VALENCE_MIN
+    wow_min: float = DEFAULT_WOW_MIN
+    solicit_max: float = DEFAULT_SOLICIT_MAX
+    composite_min: float = DEFAULT_COMPOSITE_MIN
+
+    def cache_token(self) -> str:
+        return (
+            f'{self.thematic_min:.3f}|{self.valence_min:.3f}|{self.wow_min:.3f}|'
+            f'{self.solicit_max:.3f}|{self.composite_min:.3f}'
+        )
+
+
+@dataclass(frozen=True)
+class GradeBreakdown:
+    thematic_fit: float
+    positive_valence: float
+    wow: float
+    solicit: float
+    composite: float
 
 
 @dataclass(frozen=True)
@@ -60,6 +125,7 @@ class ClassifierDecision:
     matched: bool
     reason: str
     score: float
+    grades: GradeBreakdown | None = None
 
 
 class ClassifierBackend(Protocol):
@@ -74,6 +140,37 @@ class ClassifierBackend(Protocol):
 
 
 JudgeFn = Callable[[str], dict[str, Any]]
+
+
+def composite_score(thematic_fit: float, positive_valence: float, wow: float) -> float:
+    return THEMATIC_WEIGHT * thematic_fit + VALENCE_WEIGHT * positive_valence + WOW_WEIGHT * wow
+
+
+def admit_grades(grades: GradeBreakdown, thresholds: RubricThresholds) -> str | None:
+    """Return a reject reason, or None when grades clear all gates."""
+    if grades.thematic_fit < thresholds.thematic_min:
+        return 'quality_reject:thematic_fit'
+    if grades.solicit > thresholds.solicit_max:
+        return 'quality_reject:solicit'
+    if grades.positive_valence < thresholds.valence_min:
+        return 'quality_reject:positive_valence'
+    if grades.wow < thresholds.wow_min:
+        return 'quality_reject:wow'
+    if grades.composite < thresholds.composite_min:
+        return 'quality_reject:composite'
+    return None
+
+
+def thresholds_from_env() -> RubricThresholds:
+    # CLASSIFIER_THRESHOLD remains a supported alias for the composite floor.
+    composite_default = _env_float('CLASSIFIER_THRESHOLD', DEFAULT_COMPOSITE_MIN)
+    return RubricThresholds(
+        thematic_min=_env_float('CLASSIFIER_THEMATIC_MIN', DEFAULT_THEMATIC_MIN),
+        valence_min=_env_float('CLASSIFIER_VALENCE_MIN', DEFAULT_VALENCE_MIN),
+        wow_min=_env_float('CLASSIFIER_WOW_MIN', DEFAULT_WOW_MIN),
+        solicit_max=_env_float('CLASSIFIER_SOLICIT_MAX', DEFAULT_SOLICIT_MAX),
+        composite_min=_env_float('CLASSIFIER_COMPOSITE_MIN', composite_default),
+    )
 
 
 @dataclass(frozen=True)
@@ -108,12 +205,14 @@ class ClassifierModel:
 
 @dataclass
 class DeepSeekClassifier:
-    """Live DeepSeek values-alignment scorer with a small in-process cache."""
+    """Live DeepSeek multi-dimensional quality scorer with a small cache."""
 
     api_key: str
     model: str = DEFAULT_MODEL
     api_url: str = DEFAULT_API_URL
-    threshold: float = DEFAULT_THRESHOLD
+    thresholds: RubricThresholds | None = None
+    # Legacy alias mirrored into thresholds.composite_min when thresholds omitted.
+    threshold: float = DEFAULT_COMPOSITE_MIN
     timeout_s: float = DEFAULT_TIMEOUT_S
     max_text_chars: int = DEFAULT_MAX_TEXT_CHARS
     _cache: dict[str, ClassifierDecision | None] | None = None
@@ -122,6 +221,10 @@ class DeepSeekClassifier:
     def __post_init__(self) -> None:
         if self._cache is None:
             self._cache = {}
+        if self.thresholds is None:
+            self.thresholds = RubricThresholds(composite_min=self.threshold)
+        else:
+            self.threshold = self.thresholds.composite_min
 
     def classify(
         self,
@@ -134,10 +237,11 @@ class DeepSeekClassifier:
         text = (haystack or '').strip()
         if not text:
             return None
+        assert self.thresholds is not None
         clipped = text[: self.max_text_chars]
         cache_key = hashlib.sha256(
-            f'{self.model}|{self.threshold}|{term}|{int(has_event_cue)}|'
-            f'{int(has_local_venue)}|{clipped}'.encode()
+            f'{self.model}|{self.thresholds.cache_token()}|{term}|'
+            f'{int(has_event_cue)}|{int(has_local_venue)}|{clipped}'.encode()
         ).hexdigest()
         assert self._cache is not None
         if cache_key in self._cache:
@@ -149,7 +253,7 @@ class DeepSeekClassifier:
             self._cache[cache_key] = None
             return None
 
-        decision = _decision_from_payload(payload, term=term, threshold=self.threshold)
+        decision = _decision_from_payload(payload, term=term, thresholds=self.thresholds)
         self._cache[cache_key] = decision
         return decision
 
@@ -157,7 +261,10 @@ class DeepSeekClassifier:
         user = {
             'text': text,
             'ambiguous_term': term,
-            'instruction': 'Score values alignment for the prosocial anarchist feed.',
+            'instruction': (
+                'Score thematic_fit, positive_valence, wow, and solicit for the '
+                'prosocial anarchist feed quality rubric.'
+            ),
         }
         body = {
             'model': self.model,
@@ -167,7 +274,7 @@ class DeepSeekClassifier:
             ],
             'response_format': {'type': 'json_object'},
             'temperature': 0.0,
-            'max_tokens': 256,
+            'max_tokens': 320,
             'thinking': {'type': 'disabled'},
         }
         request = urllib.request.Request(
@@ -176,7 +283,7 @@ class DeepSeekClassifier:
             headers={
                 'Authorization': f'Bearer {self.api_key}',
                 'Content-Type': 'application/json',
-                'User-Agent': 'anarchist-bluesky-feed-classifier/0.1',
+                'User-Agent': 'anarchist-bluesky-feed-classifier/0.2',
             },
             method='POST',
         )
@@ -192,7 +299,10 @@ class FakeClassifier:
 
     keep_terms: frozenset[str] = frozenset()
     keep_substrings: tuple[str, ...] = ()
+    reject_substrings: tuple[str, ...] = ()
     score: float = 0.9
+    solicit: float = 0.1
+    thresholds: RubricThresholds | None = None
 
     def classify(
         self,
@@ -204,13 +314,44 @@ class FakeClassifier:
     ) -> ClassifierDecision | None:
         del has_event_cue, has_local_venue
         lowered = haystack.lower()
+        for needle in self.reject_substrings:
+            if needle.lower() in lowered:
+                grades = _fake_grades(self.score, solicit=0.95)
+                return ClassifierDecision(
+                    False,
+                    'quality_reject:solicit',
+                    grades.composite,
+                    grades,
+                )
+        thresholds = self.thresholds or RubricThresholds()
         if term and term.lower() in self.keep_terms:
-            return ClassifierDecision(True, f'classifier:ambiguous:{term.lower()}', self.score)
+            grades = _fake_grades(self.score, solicit=self.solicit)
+            reject = admit_grades(grades, thresholds)
+            if reject:
+                return ClassifierDecision(False, reject, grades.composite, grades)
+            return ClassifierDecision(
+                True, f'classifier:ambiguous:{term.lower()}', grades.composite, grades
+            )
         for needle in self.keep_substrings:
             if needle.lower() in lowered:
-                label = f'ambiguous:{term.lower()}' if term else 'values_align'
-                return ClassifierDecision(True, f'classifier:{label}', self.score)
+                grades = _fake_grades(self.score, solicit=self.solicit)
+                reject = admit_grades(grades, thresholds)
+                if reject:
+                    return ClassifierDecision(False, reject, grades.composite, grades)
+                label = f'ambiguous:{term.lower()}' if term else 'quality'
+                return ClassifierDecision(True, f'classifier:{label}', grades.composite, grades)
         return None
+
+
+def _fake_grades(score: float, *, solicit: float) -> GradeBreakdown:
+    clamped = _clamp01(score)
+    return GradeBreakdown(
+        thematic_fit=clamped,
+        positive_valence=clamped,
+        wow=clamped,
+        solicit=_clamp01(solicit),
+        composite=composite_score(clamped, clamped, clamped),
+    )
 
 
 def _parse_json_object(content: str) -> dict[str, Any]:
@@ -224,24 +365,66 @@ def _parse_json_object(content: str) -> dict[str, Any]:
     return data
 
 
+def _clamp01(value: float) -> float:
+    if value < 0.0:
+        return 0.0
+    if value > 1.0:
+        return 1.0
+    return value
+
+
+def _payload_float(payload: dict[str, Any], key: str, default: float) -> float:
+    try:
+        return _clamp01(float(payload.get(key, default)))
+    except TypeError, ValueError:
+        return _clamp01(default)
+
+
+def grades_from_payload(payload: dict[str, Any]) -> GradeBreakdown:
+    """Parse multi-dim grades; legacy ``score`` maps onto thematic/valence/wow."""
+    legacy = _payload_float(payload, 'score', 0.0)
+    multi_keys = ('thematic_fit', 'positive_valence', 'wow', 'solicit')
+    has_multi = any(key in payload for key in multi_keys)
+    if has_multi:
+        thematic = _payload_float(payload, 'thematic_fit', legacy)
+        valence = _payload_float(payload, 'positive_valence', legacy)
+        wow = _payload_float(payload, 'wow', legacy)
+        solicit = _payload_float(payload, 'solicit', 0.0)
+    else:
+        thematic = legacy
+        valence = legacy
+        wow = legacy
+        solicit = 0.0
+    return GradeBreakdown(
+        thematic_fit=thematic,
+        positive_valence=valence,
+        wow=wow,
+        solicit=solicit,
+        composite=composite_score(thematic, valence, wow),
+    )
+
+
 def _decision_from_payload(
     payload: dict[str, Any],
     *,
     term: str | None,
-    threshold: float,
+    thresholds: RubricThresholds,
 ) -> ClassifierDecision | None:
+    grades = grades_from_payload(payload)
     keep = bool(payload.get('keep'))
-    try:
-        score = float(payload.get('score', 0.0))
-    except TypeError, ValueError:
-        score = 0.0
-    if not keep or score < threshold:
-        return None
     if term:
         label = f'ambiguous:{term}'
     else:
-        label = 'values_align'
-    return ClassifierDecision(True, f'classifier:{label}', score)
+        label = 'quality'
+
+    if not keep:
+        reason = f'quality_reject:keep_false:{label}'
+        return ClassifierDecision(False, reason, grades.composite, grades)
+
+    reject = admit_grades(grades, thresholds)
+    if reject:
+        return ClassifierDecision(False, reject, grades.composite, grades)
+    return ClassifierDecision(True, f'classifier:{label}', grades.composite, grades)
 
 
 def classifier_enabled() -> bool:
@@ -262,11 +445,13 @@ def build_default_classifier() -> ClassifierBackend | None:
     api_key = os.environ.get('DEEPSEEK_API_KEY', '').strip()
     if not api_key:
         return None
+    thresholds = thresholds_from_env()
     return DeepSeekClassifier(
         api_key=api_key,
         model=os.environ.get('CLASSIFIER_MODEL', DEFAULT_MODEL).strip() or DEFAULT_MODEL,
         api_url=os.environ.get('DEEPSEEK_API_URL', DEFAULT_API_URL).strip() or DEFAULT_API_URL,
-        threshold=_env_float('CLASSIFIER_THRESHOLD', DEFAULT_THRESHOLD),
+        thresholds=thresholds,
+        threshold=thresholds.composite_min,
         timeout_s=_env_float('CLASSIFIER_TIMEOUT_S', DEFAULT_TIMEOUT_S),
         max_text_chars=int(_env_float('CLASSIFIER_MAX_TEXT_CHARS', float(DEFAULT_MAX_TEXT_CHARS))),
     )
@@ -285,7 +470,7 @@ def clear_model_cache() -> None:
 def load_model(path: Any = None) -> ClassifierModel:
     """Back-compat helper used by older tests; returns a no-op stub."""
     del path
-    return ClassifierModel(version='deepseek_v4_flash', threshold=DEFAULT_THRESHOLD, weights={})
+    return ClassifierModel(version='deepseek_v4_flash', threshold=DEFAULT_COMPOSITE_MIN, weights={})
 
 
 def extract_features(
@@ -312,16 +497,19 @@ def classify_candidate(
     has_local_venue: bool,
     classifier: ClassifierBackend | None = None,
     model: ClassifierBackend | None = None,
+    allow_without_term: bool = False,
 ) -> ClassifierDecision | None:
-    """Score an ambiguous candidate; return a keep decision or None to drop.
+    """Score a candidate; return a decision (keep or graded reject) or None.
 
-    Production only reaches this for ambiguous-term leftovers after the regex
-    floor. Without a latchable ``term`` (and no injected backend), decline so
-    the firehose path never pays for open-ended AI scoring.
+    ``None`` means unscored (disabled / error / no backend). Graded rejects
+    return ``ClassifierDecision(matched=False, ...)``.
+
+    Production ambiguous leftovers always pass a latchable ``term``. Solicit
+    rechecks on provisional keeps set ``allow_without_term=True``.
     """
     backend = classifier if classifier is not None else model
     if backend is None:
-        if not term:
+        if not term and not allow_without_term:
             return None
         backend = _cached_default_classifier()
     if backend is None:

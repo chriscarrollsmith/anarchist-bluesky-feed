@@ -54,10 +54,18 @@ MUTED_KEYWORDS = tuple(
     part.strip().lower() for part in os.environ.get('MUTED_KEYWORDS', '').split(',') if part.strip()
 )
 
-# Second-pass DeepSeek values-alignment classifier (ambiguous leftovers only).
+# DeepSeek quality rubric (ambiguous leftovers + solicit-shaped provisional keeps).
 CLASSIFIER_ENABLED = _get_bool_env_var(os.environ.get('CLASSIFIER_ENABLED', 'true'))
 CLASSIFIER_MODEL = os.environ.get('CLASSIFIER_MODEL', 'deepseek-v4-flash').strip()
-CLASSIFIER_THRESHOLD = float(os.environ.get('CLASSIFIER_THRESHOLD', '0.72'))
+# Composite floor; CLASSIFIER_THRESHOLD is a legacy alias read by classifier.py.
+CLASSIFIER_COMPOSITE_MIN = float(
+    os.environ.get('CLASSIFIER_COMPOSITE_MIN') or os.environ.get('CLASSIFIER_THRESHOLD', '0.68')
+)
+CLASSIFIER_THRESHOLD = CLASSIFIER_COMPOSITE_MIN
+CLASSIFIER_THEMATIC_MIN = float(os.environ.get('CLASSIFIER_THEMATIC_MIN', '0.70'))
+CLASSIFIER_VALENCE_MIN = float(os.environ.get('CLASSIFIER_VALENCE_MIN', '0.55'))
+CLASSIFIER_WOW_MIN = float(os.environ.get('CLASSIFIER_WOW_MIN', '0.45'))
+CLASSIFIER_SOLICIT_MAX = float(os.environ.get('CLASSIFIER_SOLICIT_MAX', '0.35'))
 DEEPSEEK_API_KEY_SET = bool(os.environ.get('DEEPSEEK_API_KEY', '').strip())
 
 ALLOWLIST_DIDS = load_allowlist_dids()
@@ -66,7 +74,8 @@ ALLOWLIST_HANDLES = load_allowlist_handles()
 logger.info(
     'config loaded hostname=%s service_did=%s allowlist_dids=%d allowlist_handles=%d '
     'soft_prior_min=%d soft_prior_window_days=%d ranking_mode=%s muted_keywords=%d '
-    'classifier_enabled=%s classifier_model=%s deepseek_key=%s',
+    'classifier_enabled=%s classifier_model=%s deepseek_key=%s '
+    'rubric_thematic>=%.2f valence>=%.2f wow>=%.2f solicit<=%.2f composite>=%.2f',
     HOSTNAME,
     SERVICE_DID,
     len(ALLOWLIST_DIDS),
@@ -78,4 +87,9 @@ logger.info(
     CLASSIFIER_ENABLED,
     CLASSIFIER_MODEL,
     'set' if DEEPSEEK_API_KEY_SET else 'missing',
+    CLASSIFIER_THEMATIC_MIN,
+    CLASSIFIER_VALENCE_MIN,
+    CLASSIFIER_WOW_MIN,
+    CLASSIFIER_SOLICIT_MAX,
+    CLASSIFIER_COMPOSITE_MIN,
 )

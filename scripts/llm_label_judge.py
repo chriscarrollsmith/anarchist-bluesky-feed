@@ -41,28 +41,35 @@ DEFAULT_OPENAI_MODEL = 'gpt-4o-mini'
 DEFAULT_OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
 SYSTEM_PROMPT = """\
-You label Bluesky posts for a prosocial anarchist custom feed.
+You label Bluesky posts for a curated prosocial anarchist custom feed that
+prefers high-quality, positive, memorable posts — not personal fundraising.
 
 Anarchism here means movements and projects that want to decentralize both
-political power and capital: mutual aid, dual power, horizontal organizing,
-worker autonomy, commons stewardship, and anti-authoritarian practice.
+political power and capital: mutual aid praxis, dual power, horizontal
+organizing, worker autonomy, commons stewardship, and anti-authoritarian
+practice.
 
 Return JSON only: {"expected": true|false, "rationale": "<short reason>",
 "confidence": "high"|"medium"|"low"}.
 
 Keep (expected=true) when the post is about or celebrating that anarchism,
 from a clearly aligned org/voice, or announces an anarchist event/venue —
-even if the text never says "anarchism".
+even if the text never says "anarchism". Prefer constructive tone and
+substance over boilerplate slogans. Collective org fundraisers and
+non-monetary mutual aid (fridge restock, skill share) can keep.
 
 Drop (expected=false) for:
 - Anarcho-capitalism / right-"libertarian" market fundamentalism
 - Chaos / entertainment "anarchy" (Sons of Anarchy, Anarchy Online, sports riots)
 - Crypto/Web3/DeFi "decentralized" jargon without anarchist values
 - Bare ambiguous left terms with no anarchist or anti-authoritarian signal
+- Personal money-asks (Venmo/CashApp/GoFundMe/PayPal-me, "I'm short on rent",
+  individual "mutual aid request") even when wrapped in anarchist language
 
-Prefer precision on false friends; prefer recall for allowlisted collectives
-and mutual-aid praxis. If unsure, set confidence to low and lean drop for bare
-slogans, lean keep only when author/venue strongly implies aligned anarchism.
+Prefer precision on false friends and solicits; prefer recall for allowlisted
+collectives and mutual-aid praxis. If unsure, set confidence to low and lean
+drop for bare slogans or personal fundraising, lean keep only when
+author/venue strongly implies aligned anarchism without an extractive ask.
 """
 
 

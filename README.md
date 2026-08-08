@@ -15,7 +15,7 @@ Bluesky only asks this service for post URIs; AppView hydrates them.
 | Path | Role |
 |------|------|
 | `server/matcher.py` | Regex floor (strong / ambiguous / hard negatives) |
-| `server/classifier.py` | Second-pass DeepSeek values-alignment scorer |
+| `server/classifier.py` | DeepSeek quality rubric (theme / valence / wow / solicit) |
 | `server/jetstream.py` | Websocket consumer + cursor persistence |
 | `server/indexer.py` | Match → DB writes / deletes |
 | `server/app.py` | XRPC + `did:web` endpoints |
@@ -28,23 +28,42 @@ Decision order:
 
 ```
 allowlist → gazetteer other/local → hard negatives → strong regex →
-event+venue → (ambiguous + context) → soft prior → DeepSeek classifier → drop
+event+venue → (ambiguous + context) → soft prior → DeepSeek quality rubric → drop
 ```
+
+Provisional keeps (including allowlist / strong positives) that look like personal
+money-asks (Venmo, CashApp, GoFundMe, “mutual aid request”, …) are rechecked by
+the quality rubric. If the classifier is offline, those solicit-shaped posts are
+dropped.
 
 **Keep** when:
 
-- Strong phrases (`anarchism`, `mutual aid`, `dual power`, `Food Not Bombs`, `IWW`, `CrimethInc`, `AK Press`, …)
+- Strong phrases (`anarchism`, `mutual aid`, `dual power`, `Food Not Bombs`, `IWW`, `CrimethInc`, `AK Press`, …) and not a personal money-ask
 - Ambiguous terms (`anarchy`, `direct action`, `libertarian`, `co-op`, …) with anarchist context
-- Author is allowlisted (`data/allowlist_handles.txt` / `allowlist_dids.txt`)
+- Author is allowlisted (`data/allowlist_handles.txt` / `allowlist_dids.txt`) and not a personal money-ask
 - Soft prior authors (repeated strong matches) use bare ambiguous terms
 - Event phrasing + anarchist venue/project (`infoshop`, `bookfair`, `free skol`, …)
-- DeepSeek (`deepseek-v4-flash`) scores an ambiguous leftover above `CLASSIFIER_THRESHOLD`
+- DeepSeek (`deepseek-v4-flash`) clears the quality rubric gates on an ambiguous leftover
+
+**Quality rubric** (see `server/classifier.py`):
+
+| Dimension | Gate (defaults) |
+|-----------|-----------------|
+| `thematic_fit` | ≥ `CLASSIFIER_THEMATIC_MIN` (0.70) |
+| `positive_valence` | ≥ `CLASSIFIER_VALENCE_MIN` (0.55) |
+| `wow` | ≥ `CLASSIFIER_WOW_MIN` (0.45) |
+| `solicit` (inverted) | ≤ `CLASSIFIER_SOLICIT_MAX` (0.35) |
+| composite `0.45·theme + 0.25·valence + 0.30·wow` | ≥ `CLASSIFIER_COMPOSITE_MIN` (0.68) |
+
+Personal Venmo/CashApp hardship asks score high on `solicit` and are dropped.
+Collective org fundraisers and non-monetary mutual aid praxis can still keep.
 
 **Drop** hard negatives / false friends:
 
 - Anarcho-capitalism / ancap / Rothbard–Hoppe / Mises Institute framing
 - Sons of Anarchy, Anarchy Online, “state of anarchy” chaos news
 - DeFi / Web3 / NFT “decentralized” jargon without anarchist values
+- Personal fundraising wrapped as “mutual aid”
 
 ## Local setup
 

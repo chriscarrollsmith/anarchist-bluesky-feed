@@ -90,6 +90,7 @@ def test_eval_cases_have_required_strata() -> None:
     assert 'author_soft_prior' in buckets
     assert 'regional_event' in buckets
     assert 'ambiguous_classifier' in buckets
+    assert 'solicit_reject' in buckets
     assert splits == {'dev', 'holdout'}
 
     soft_prior_cases = [c for c in cases if c.get('bucket') == 'author_soft_prior']
@@ -99,6 +100,10 @@ def test_eval_cases_have_required_strata() -> None:
     clf_cases = [c for c in cases if c.get('bucket') == 'ambiguous_classifier']
     assert any(c.get('expected') is True and c.get('split') == 'holdout' for c in clf_cases)
     assert any(c.get('expected') is False for c in clf_cases)
+
+    solicit_cases = [c for c in cases if c.get('bucket') == 'solicit_reject']
+    assert solicit_cases, 'expected solicit_reject eval cases'
+    assert all(c.get('expected') is False for c in solicit_cases)
 
     fn_author = [
         c

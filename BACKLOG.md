@@ -4,11 +4,13 @@ Living backlog for the prosocial anarchist Bluesky feed.
 
 ## Product goals
 
-- **Precision:** Keep out ancap / chaos / crypto false friends.
-- **Recall:** Allowlisted collectives and mutual-aid praxis should appear even
-  without explicit anarchist keywords.
-- **Values alignment:** Ambiguous leftovers are scored by DeepSeek
-  (`deepseek-v4-flash`) for relevancy to decentralizing political power and capital.
+- **Precision:** Keep out ancap / chaos / crypto false friends and personal
+  fundraising wrapped as “mutual aid.”
+- **Recall:** Allowlisted collectives and mutual-aid *praxis* should appear even
+  without explicit anarchist keywords (org project updates stay; Venmo asks go).
+- **Quality rubric:** Ambiguous leftovers (and solicit-shaped provisional keeps)
+  are scored by DeepSeek (`deepseek-v4-flash`) on thematic fit, positive valence,
+  wow factor, and solicit intensity.
 
 ## P0 — Ship / harden v1
 
@@ -21,9 +23,10 @@ Living backlog for the prosocial anarchist Bluesky feed.
 - Sample with `collect_eval_sample.py` (authors / near-miss / events).
 - Optional LLM proposals via `llm_label_judge.py` — human confirm before append.
 
-### B-003 — Tune DeepSeek threshold on holdout
-- Log classifier keep/drop reasons in production samples.
-- Adjust `CLASSIFIER_THRESHOLD` only with stratified eval evidence.
+### B-003 — Tune quality-rubric gates on holdout
+- Log classifier keep/drop reasons (incl. `quality_reject:*` / solicit cues).
+- Adjust thematic / valence / wow / solicit / composite gates only with
+  stratified eval evidence.
 
 ### B-004 — Publish + Fly cutover
 - `publish_feed.py` with real credentials on an operator machine.
@@ -37,5 +40,6 @@ Living backlog for the prosocial anarchist Bluesky feed.
 ### B-011 — Soft-prior analytics
 - Dashboard or script for authors approaching the soft-prior threshold.
 
-### B-012 — Engagement ranking experiments
-- Try `RANKING_MODE=engagement` once the index is non-empty.
+### B-013 — Quality rubric ranking
+- Optionally store grade breakdowns on indexed posts and soft-boost wow /
+  valence in `RANKING_MODE` experiments once the index is non-empty.

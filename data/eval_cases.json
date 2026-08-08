@@ -456,5 +456,35 @@
     "regression": true,
     "author_did": "did:plc:softpriortest0000000000002",
     "soft_prior": true
+  },
+  {
+    "id": "fp-mutual-aid-venmo-rent",
+    "text": "Mutual aid request — I'm short on rent this month, please Venmo @comrade.",
+    "expected": false,
+    "note": "personal venmo ask wrapped as mutual aid",
+    "signal": "text",
+    "bucket": "solicit_reject",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-mutual-aid-cashapp",
+    "text": "Anarchist mutual aid: CashApp me if you can spare anything for groceries.",
+    "expected": false,
+    "note": "cashapp personal ask",
+    "signal": "text",
+    "bucket": "solicit_reject",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "fp-gofundme-hardship",
+    "text": "Mutual aid for my medical bills — gofundme.com/u/example-help",
+    "expected": false,
+    "note": "gofundme personal hardship",
+    "signal": "text",
+    "bucket": "solicit_reject",
+    "split": "dev",
+    "regression": true
   }
 ]

@@ -2,8 +2,9 @@
 """Evaluate matcher precision/recall against labeled fixtures.
 
 Product policy (see README): optimize for **both** false positives and false
-negatives. Ancap / chaos / crypto false friends must stay out, but allowlisted
-collectives and mutual-aid praxis should match even without explicit keywords.
+negatives. Ancap / chaos / crypto false friends and personal fundraising
+wrapped as “mutual aid” must stay out, but allowlisted collectives and
+mutual-aid praxis should match even without explicit keywords.
 
 Reports aggregate metrics plus stratification by ``bucket`` / ``signal`` and a
 ``dev`` vs ``holdout`` split so matcher changes are not judged only on the set
@@ -15,7 +16,7 @@ Case schema (``data/eval_cases.json``):
 - ``id``, ``text``, ``expected`` (bool) — required
 - ``signal``: ``text`` | ``author`` | ``event`` — how the topic cue arrives
 - ``bucket``: reason-oriented stratum (e.g. ``skyfeed_fp``,
-  ``local_org_no_placename``, ``regional_event``)
+  ``local_org_no_placename``, ``regional_event``, ``solicit_reject``)
 - ``split``: ``dev`` (iterate freely) or ``holdout`` (report separately)
 - ``regression``: if false, scored in reports but ignored for exit code / pytest
   (known recall gaps until author/event/AI backlog items land)
@@ -24,6 +25,8 @@ Case schema (``data/eval_cases.json``):
 - ``langs``: optional Bluesky language tags
 - Bucket ``ambiguous_classifier`` covers second-stage AI keeps and precision
   anchors that must stay dropped when the classifier is offline
+- Bucket ``solicit_reject`` covers personal money-asks that must stay dropped
+  (regex solicit cue; quality rubric when the classifier is online)
 """
 
 from __future__ import annotations

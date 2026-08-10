@@ -123,6 +123,7 @@ def evaluate_cases(
             allowlist_dids=dids,
             allowlist_handles=handles,
             soft_prior_dids=case_soft,
+            embed=case.get('embed'),
         )
         expected = bool(case['expected'])
         predicted = result.matched

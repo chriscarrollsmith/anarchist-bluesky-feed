@@ -321,7 +321,8 @@ def process_event(
         if config.IGNORE_REPLY_POSTS and record.get('reply'):
             return 'dry_run_skip'
         text = record.get('text') or ''
-        alt_text = extract_alt_text(record.get('embed'))
+        embed = record.get('embed')
+        alt_text = extract_alt_text(embed)
         langs = record.get('langs') or []
         if not isinstance(langs, list):
             langs = []
@@ -332,6 +333,7 @@ def process_event(
             author_did=event.get('author'),
             allowlist_dids=config.ALLOWLIST_DIDS,
             allowlist_handles=config.ALLOWLIST_HANDLES,
+            embed=embed,
         )
         return 'dry_run_match' if result.matched else 'dry_run_skip'
 

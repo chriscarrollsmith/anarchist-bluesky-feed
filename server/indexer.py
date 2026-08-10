@@ -110,7 +110,8 @@ def handle_event(event: dict[str, Any]) -> None:
         return
 
     text = record.get('text') or ''
-    alt_text = extract_alt_text(record.get('embed'))
+    embed = record.get('embed')
+    alt_text = extract_alt_text(embed)
     if _is_muted(text, alt_text):
         logger.debug('muted %s', uri)
         return
@@ -128,6 +129,7 @@ def handle_event(event: dict[str, Any]) -> None:
         allowlist_dids=config.ALLOWLIST_DIDS,
         allowlist_handles=config.ALLOWLIST_HANDLES,
         soft_prior_dids=soft_prior_dids,
+        embed=embed,
     )
     if not result.matched:
         return

@@ -23,6 +23,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import Any, cast
 
 from server.classifier import ClassifierBackend, ClassifierDecision, classify_candidate
 from server.gazetteer import Gazetteer, default_gazetteer
@@ -235,9 +236,18 @@ _LOCAL_EVENT_VENUE = re.compile(
     re.IGNORECASE | re.VERBOSE,
 )
 
+# Mutual-aid token used to pair boost/ask vernacular with the strong phrase.
+_MUTUAL_AID_TOKEN = re.compile(
+    r'(?:\#mutualaid\b|mutual\s+aid)',
+    re.IGNORECASE,
+)
+
 # Cheap cue that a provisional keep may be a personal money-ask. Forces a
 # quality-rubric pass (solicit gate) when the classifier is available; when it
 # is not, the post is dropped for precision.
+#
+# Includes Bluesky "HelpSky" fundraising hashtag culture and short boost/ask
+# shapes that otherwise sail through on bare ``#mutualaid`` / "mutual aid".
 _SOLICIT_CUE = re.compile(
     r"""
     (?:
@@ -256,6 +266,29 @@ _SOLICIT_CUE = re.compile(
       | \bcan\s+you\s+(?:spare|send|donate)\b
       | \bsend\s+(?:me\s+)?(?:\$|money|venmo|cash)
       | \bdm\s+me\s+for\s+(?:my\s+)?(?:venmo|cash\s*app|cashapp|paypal)
+      | \#helpsky\b
+      | \#helpfolkslive\b
+      | \#mutualaidrequest\b
+      | \#mutualaidboost\b
+      | \#mutualaidsaveslives\b
+      | \#urgentmutualaid\b
+      | \#emergencyma\b
+      | \#maboost\b
+      | \#madboost\b
+      | \#fundsky\b
+      | \#lgbtqma\b
+      | \#bipocma\b
+      | 💸
+      | \banything\s+helps\b
+      | \brent\s+due\b
+      | \b(?:urgent|immediate)\b.{0,60}(?:\#mutualaid\b|mutual\s+aid|\#emergencyma\b)
+      | \bplease\s+(?:help|assist|donate|boost)\b.{0,60}
+        (?:\#mutualaid\b|mutual\s+aid|venmo|cash|\$|donat|rent)
+      | (?:\#mutualaid\b|mutual\s+aid).{0,60}\bplease\s+(?:help|assist|donate|boost)\b
+      | \b(?:bumping|boosting|amplifying|re-?sharing|passing\s+along)\b
+        .{0,80}(?:\#mutualaid\b|mutual\s+aid)
+      | (?:\#mutualaid\b|mutual\s+aid).{0,40}\b(?:plz|pls|please)\b
+      | \b(?:plz|pls)\b.{0,40}(?:\#mutualaid\b|mutual\s+aid)
     )
     """,
     re.IGNORECASE | re.VERBOSE,
@@ -275,6 +308,67 @@ def _clip_embed_text(value: object, *, max_len: int = _EMBED_TEXT_MAX) -> str:
     if len(text) <= max_len:
         return text
     return text[:max_len].rstrip()
+
+
+def _record_embed_payload(embed: object | None) -> dict[str, Any] | None:
+    """Return the inner record/ref dict for quote embeds, if present."""
+    if isinstance(embed, dict):
+        record_obj = embed.get('record')
+        if not isinstance(record_obj, dict):
+            return None
+        record = cast(dict[str, Any], record_obj)
+        # recordWithMedia nests the quote under record.record.
+        nested_obj = record.get('record')
+        if isinstance(nested_obj, dict):
+            nested = cast(dict[str, Any], nested_obj)
+            if 'uri' in nested or 'cid' in nested or 'value' in nested or 'text' in nested:
+                return nested
+        return record
+    record_attr = getattr(embed, 'record', None) if embed is not None else None
+    if record_attr is None:
+        return None
+    nested_attr = getattr(record_attr, 'record', None)
+    if nested_attr is not None and (
+        getattr(nested_attr, 'uri', None)
+        or getattr(nested_attr, 'cid', None)
+        or getattr(nested_attr, 'value', None)
+        or getattr(nested_attr, 'text', None)
+    ):
+        if isinstance(nested_attr, dict):
+            return cast(dict[str, Any], nested_attr)
+        uri = getattr(nested_attr, 'uri', None)
+        return {'uri': uri} if uri else None
+    return cast(dict[str, Any], record_attr) if isinstance(record_attr, dict) else None
+
+
+def _quoted_record_text(record_payload: dict[str, Any]) -> str:
+    """Best-effort text from a hydrated quote payload (AppView) or empty."""
+    for key in ('value', 'record'):
+        nested = record_payload.get(key)
+        if isinstance(nested, dict):
+            text = nested.get('text')
+            if isinstance(text, str) and text.strip():
+                return text
+    text = record_payload.get('text')
+    return text if isinstance(text, str) else ''
+
+
+def is_opaque_record_embed(embed: object | None) -> bool:
+    """True when a quote embed is only a strong ref (Jetstream create shape).
+
+    Firehose records carry ``uri``/``cid`` without the quoted post body. Boost
+    accounts wrap personal fundraisers this way while the outer text is just
+    ``#MutualAid #HelpSky`` — without hydration we cannot see PayPal/Ko-fi in
+    the quote, so mutual-aid + opaque quote is treated as solicit-shaped.
+    """
+    payload = _record_embed_payload(embed)
+    if not payload:
+        return False
+    if _quoted_record_text(payload).strip():
+        return False
+    uri = payload.get('uri')
+    cid = payload.get('cid')
+    return bool(uri or cid)
 
 
 def extract_alt_text(embed: object | None) -> str:
@@ -304,14 +398,18 @@ def extract_alt_text(embed: object | None) -> str:
         media = embed.get('media')
         if isinstance(media, dict):
             chunks.append(extract_alt_text(media))
-        record = embed.get('record')
-        if isinstance(record, dict):
-            nested = record.get('record') or record.get('value') or {}
-            if isinstance(nested, dict):
-                text = nested.get('text')
-                if text:
-                    chunks.append(_clip_embed_text(text))
-                chunks.append(extract_alt_text(nested.get('embed')))
+        record_payload = _record_embed_payload(embed)
+        if record_payload is not None:
+            quoted = _quoted_record_text(record_payload)
+            if quoted:
+                chunks.append(_clip_embed_text(quoted))
+            for key in ('value', 'record'):
+                nested = record_payload.get(key)
+                if isinstance(nested, dict):
+                    chunks.append(extract_alt_text(nested.get('embed')))
+                    break
+            else:
+                chunks.append(extract_alt_text(record_payload.get('embed')))
         return ' '.join(chunk for chunk in chunks if chunk)
 
     images = getattr(embed, 'images', None)
@@ -371,9 +469,21 @@ def _match_local_event(haystack: str) -> MatchResult | None:
     return MatchResult(True, f'event_local_venue:{venue}')
 
 
-def looks_like_solicit(haystack: str) -> bool:
-    """True when text/alt looks like a personal money-ask or payment rail."""
-    return bool(_SOLICIT_CUE.search(haystack or ''))
+def looks_like_solicit(
+    haystack: str,
+    *,
+    embed: object | None = None,
+    opaque_record_embed: bool | None = None,
+) -> bool:
+    """True when text/alt looks like a personal money-ask or fundraising boost.
+
+    Also true for mutual-aid posts that quote another record without hydrated
+    quote text (common Jetstream shape for HelpSky-style boost accounts).
+    """
+    if _SOLICIT_CUE.search(haystack or ''):
+        return True
+    opaque = is_opaque_record_embed(embed) if opaque_record_embed is None else opaque_record_embed
+    return bool(opaque and _MUTUAL_AID_TOKEN.search(haystack or ''))
 
 
 def _run_classifier(
@@ -412,9 +522,10 @@ def _maybe_quality_gate(
     provisional: MatchResult,
     *,
     classifier: ClassifierBackend | None,
+    embed: object | None = None,
 ) -> MatchResult:
     """Re-score solicit-shaped provisional keeps via the quality rubric."""
-    if not provisional.matched or not looks_like_solicit(haystack):
+    if not provisional.matched or not looks_like_solicit(haystack, embed=embed):
         return provisional
     decision = _run_classifier(
         haystack,
@@ -442,6 +553,7 @@ def match_post(
     classifier: ClassifierBackend | None = None,
     classifier_model: ClassifierBackend | None = None,
     gazetteer: Gazetteer | None = None,
+    embed: object | None = None,
 ) -> MatchResult:
     """Return whether a post belongs in the prosocial anarchist feed.
 
@@ -451,6 +563,10 @@ def match_post(
 
     Provisional regex/allowlist keeps that look like money asks are rechecked
     by the quality rubric when available; otherwise they are dropped.
+
+    ``embed`` is the raw Bluesky embed object (Jetstream or AppView). Opaque
+    quote refs paired with mutual-aid language are solicit-gated even when the
+    quoted body is not hydrated yet.
 
     ``classifier`` (or legacy ``classifier_model``) is for tests; production
     uses the DeepSeek backend when ``CLASSIFIER_ENABLED`` is set.
@@ -466,10 +582,10 @@ def match_post(
 
     if author_did and author_did in allowlist_dids:
         provisional = MatchResult(True, 'allowlist_did')
-        return _maybe_quality_gate(haystack, provisional, classifier=backend)
+        return _maybe_quality_gate(haystack, provisional, classifier=backend, embed=embed)
     if author_handle and author_handle.lower() in allowlist_handles:
         provisional = MatchResult(True, 'allowlist_handle')
-        return _maybe_quality_gate(haystack, provisional, classifier=backend)
+        return _maybe_quality_gate(haystack, provisional, classifier=backend, embed=embed)
 
     if not haystack:
         return MatchResult(False, 'empty')
@@ -486,6 +602,7 @@ def match_post(
                 haystack,
                 MatchResult(True, 'strong_positive_over_negative'),
                 classifier=backend,
+                embed=embed,
             )
         return MatchResult(False, 'hard_negative')
 
@@ -494,6 +611,7 @@ def match_post(
             haystack,
             MatchResult(True, f'entity_local:{entity.entity_id}'),
             classifier=backend,
+            embed=embed,
         )
 
     if strong_hit:
@@ -501,11 +619,12 @@ def match_post(
             haystack,
             MatchResult(True, 'strong_positive'),
             classifier=backend,
+            embed=embed,
         )
 
     event_match = _match_local_event(haystack)
     if event_match is not None:
-        return _maybe_quality_gate(haystack, event_match, classifier=backend)
+        return _maybe_quality_gate(haystack, event_match, classifier=backend, embed=embed)
 
     place_haystack = _haystack_without_handles(haystack)
     ambiguous_hits = _AMBIGUOUS_TERM.findall(place_haystack)
@@ -518,11 +637,12 @@ def match_post(
                 haystack,
                 MatchResult(True, f'ambiguous_with_context:{term}'),
                 classifier=backend,
+                embed=embed,
             )
 
         prior = _soft_prior_ambiguous(author_did, soft_prior_dids, term)
         if prior:
-            return _maybe_quality_gate(haystack, prior, classifier=backend)
+            return _maybe_quality_gate(haystack, prior, classifier=backend, embed=embed)
 
         clf = _classifier_keep(haystack, term=term, classifier=backend)
         return clf if clf else MatchResult(False, f'ambiguous_no_context:{term}')

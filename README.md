@@ -32,9 +32,10 @@ event+venue → (ambiguous + context) → soft prior → DeepSeek quality rubric
 ```
 
 Provisional keeps (including allowlist / strong positives) that look like personal
-money-asks (Venmo, CashApp, GoFundMe, “mutual aid request”, …) are rechecked by
-the quality rubric. If the classifier is offline, those solicit-shaped posts are
-dropped.
+money-asks or HelpSky-style fundraising boosts (Venmo, CashApp, GoFundMe,
+`#HelpSky` / `#MutualAidRequest` / `💸`, “please help”, opaque quote+`#mutualaid`,
+…) are rechecked by the quality rubric. If the classifier is offline, those
+solicit-shaped posts are dropped.
 
 **Keep** when:
 

@@ -486,5 +486,52 @@
     "bucket": "solicit_reject",
     "split": "dev",
     "regression": true
+  },
+  {
+    "id": "fp-helpsky-hashtag-soup",
+    "text": "💕 💸 #HelpSky #MutualAid #HelpFolksLive #MABoost #MADBoost",
+    "expected": false,
+    "note": "HelpSky fundraising hashtag soup with money emoji",
+    "signal": "text",
+    "bucket": "solicit_reject",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-mutual-aid-plz",
+    "text": "I've been sick and my budget is suffering, #mutualaid plz",
+    "expected": false,
+    "note": "bare mutualaid hashtag with plz ask",
+    "signal": "text",
+    "bucket": "solicit_reject",
+    "split": "holdout",
+    "regression": true
+  },
+  {
+    "id": "fp-mutual-aid-boost-amplify",
+    "text": "Amplifying this time-sensitive request so more folks see this! #emergencyMA #MutualAid",
+    "expected": false,
+    "note": "boost/amplify vernacular around mutual aid ask",
+    "signal": "text",
+    "bucket": "solicit_reject",
+    "split": "dev",
+    "regression": true
+  },
+  {
+    "id": "fp-mutual-aid-opaque-quote-boost",
+    "text": "#MutualAid #HelpFolksLive #HelpSky",
+    "expected": false,
+    "note": "Jetstream opaque quote embed + mutual aid boost tags",
+    "signal": "text",
+    "bucket": "solicit_reject",
+    "split": "holdout",
+    "regression": true,
+    "embed": {
+      "$type": "app.bsky.embed.record",
+      "record": {
+        "uri": "at://did:plc:quoted000000000000000001/app.bsky.feed.post/3example",
+        "cid": "bafyreiopaquequote000000000000000000000000000000001"
+      }
+    }
   }
 ]

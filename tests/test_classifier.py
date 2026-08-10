@@ -14,7 +14,11 @@ from server.classifier import (
     grades_from_payload,
     load_model,
 )
-from server.matcher import looks_like_solicit, match_post
+from server.matcher import (
+    is_opaque_record_embed,
+    looks_like_solicit,
+    match_post,
+)
 
 
 def test_load_default_model_stub() -> None:
@@ -215,6 +219,55 @@ def test_allowlist_solicit_cue_still_gated() -> None:
     )
     assert result.matched is False
     assert result.reason == 'quality_reject:solicit'
+
+
+def test_helpsky_hashtag_soup_is_solicit_shaped() -> None:
+    text = '💕 💸 #HelpSky #MutualAid #HelpFolksLive #MABoost #MADBoost'
+    assert looks_like_solicit(text)
+    result = match_post(text)
+    assert result.matched is False
+    assert result.reason.startswith('solicit_cue_unscored:')
+
+
+def test_opaque_quote_with_mutual_aid_is_solicit_shaped() -> None:
+    embed = {
+        '$type': 'app.bsky.embed.record',
+        'record': {
+            'uri': 'at://did:plc:quoted000000000000000001/app.bsky.feed.post/3example',
+            'cid': 'bafyreiopaquequote000000000000000000000000000000001',
+        },
+    }
+    assert is_opaque_record_embed(embed)
+    assert looks_like_solicit('#MutualAid #HelpSky', embed=embed)
+    # Without HelpSky / money cues, opaque quote + mutual aid still gates.
+    bare = match_post('Mutual aid Friday', embed=embed)
+    assert bare.matched is False
+    assert bare.reason.startswith('solicit_cue_unscored:')
+
+
+def test_hydrated_quote_uses_nested_text_not_opaque() -> None:
+    embed = {
+        '$type': 'app.bsky.embed.record#view',
+        'record': {
+            'uri': 'at://did:plc:quoted000000000000000001/app.bsky.feed.post/3example',
+            'cid': 'bafyreiopaquequote000000000000000000000000000000001',
+            'value': {
+                'text': 'Neighborhood mutual aid fridge restocked tonight.',
+                '$type': 'app.bsky.feed.post',
+            },
+        },
+    }
+    assert not is_opaque_record_embed(embed)
+    # Outer boost tags still solicit-gate via HelpSky / money cues.
+    assert looks_like_solicit('#HelpSky #MutualAid', embed=embed)
+
+
+def test_mutual_aid_praxis_without_ask_still_keeps() -> None:
+    result = match_post(
+        'Neighborhood mutual aid fridge restocked — take what you need, share what you can.'
+    )
+    assert result.matched is True
+    assert result.reason == 'strong_positive'
 
 
 def test_classifier_model_stub_never_keeps() -> None:

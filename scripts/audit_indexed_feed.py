@@ -275,6 +275,7 @@ def evaluate_post(
         allowlist_dids=allowlist_dids,
         allowlist_handles=allowlist_handles,
         soft_prior_dids=soft_prior_dids,
+        embed=post.get('embed') if isinstance(post.get('embed'), dict) else None,
     )
     return result.matched, result.reason
 

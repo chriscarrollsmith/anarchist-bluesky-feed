@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 from server.allowlists import load_allowlist_dids, load_allowlist_handles
 from server.classifier import FakeClassifier
-from server.matcher import extract_alt_text, match_post
+from server.matcher import extract_alt_text, is_opaque_record_embed, match_post
 
 ALL_CASES = json.loads(
     (Path(__file__).resolve().parents[1] / 'data' / 'eval_cases.json').read_text(encoding='utf-8')
@@ -31,6 +31,7 @@ def test_eval_case(case: dict[str, Any]) -> None:
         allowlist_dids=ALLOWLIST_DIDS,
         allowlist_handles=ALLOWLIST_HANDLES,
         soft_prior_dids=soft_prior_dids,
+        embed=case.get('embed'),
     )
     assert result.matched is bool(case['expected']), (
         f'{case["id"]}: expected={case["expected"]} got={result.matched} '
@@ -119,3 +120,27 @@ def test_extract_alt_text_clips_external_description() -> None:
     alt = extract_alt_text(embed)
     assert 'Mutual aid zine' in alt
     assert len(alt) < 500
+
+
+def test_extract_alt_text_from_hydrated_quote_value() -> None:
+    embed = {
+        '$type': 'app.bsky.embed.record#view',
+        'record': {
+            'uri': 'at://did:plc:x/app.bsky.feed.post/3y',
+            'value': {'text': 'Quoted mutual aid fridge note', 'embed': None},
+        },
+    }
+    assert 'Quoted mutual aid fridge note' in extract_alt_text(embed)
+    assert not is_opaque_record_embed(embed)
+
+
+def test_is_opaque_record_embed_jetstream_shape() -> None:
+    embed = {
+        '$type': 'app.bsky.embed.record',
+        'record': {
+            'uri': 'at://did:plc:x/app.bsky.feed.post/3y',
+            'cid': 'bafyreiexample',
+        },
+    }
+    assert is_opaque_record_embed(embed)
+    assert extract_alt_text(embed) == ''

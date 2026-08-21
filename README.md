@@ -27,7 +27,7 @@ Bluesky only asks this service for post URIs; AppView hydrates them.
 Decision order:
 
 ```
-allowlist → gazetteer other/local → hard negatives → strong regex →
+blocklist → allowlist → gazetteer other/local → hard negatives → strong regex →
 event+venue → (ambiguous + context) → soft prior → DeepSeek quality rubric → drop
 ```
 
@@ -58,6 +58,9 @@ solicit-shaped posts are dropped.
 
 Personal Venmo/CashApp hardship asks score high on `solicit` and are dropped.
 Collective org fundraisers and non-monetary mutual aid praxis can still keep.
+
+**Drop** when the author is blocklisted (`data/blocklist_handles.txt` /
+`blocklist_dids.txt`), even if the text would otherwise keep.
 
 **Drop** hard negatives / false friends:
 

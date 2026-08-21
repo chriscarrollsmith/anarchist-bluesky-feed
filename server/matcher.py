@@ -13,7 +13,8 @@ Rejects common false positives:
 - Personal fundraising / extractive "mutual aid" money asks (quality rubric)
 
 Recall without keywords comes from author allowlists and soft author priors
-earned from repeated strong text matches. Ambiguous leftovers — and
+earned from repeated strong text matches. Author blocklists drop an account
+even when the text would otherwise keep. Ambiguous leftovers — and
 provisional keeps that look like money asks — route to the DeepSeek quality
 rubric (see ``server/classifier.py``).
 """
@@ -549,6 +550,8 @@ def match_post(
     author_handle: str | None = None,
     allowlist_dids: set[str] | None = None,
     allowlist_handles: set[str] | None = None,
+    blocklist_dids: set[str] | None = None,
+    blocklist_handles: set[str] | None = None,
     soft_prior_dids: set[str] | None = None,
     classifier: ClassifierBackend | None = None,
     classifier_model: ClassifierBackend | None = None,
@@ -557,9 +560,10 @@ def match_post(
 ) -> MatchResult:
     """Return whether a post belongs in the prosocial anarchist feed.
 
-    Decision order: allowlist (+ solicit gate) → gazetteer other-entity →
-    hard negative / gazetteer local / strong regex → event+venue →
-    ambiguous+context → soft prior → quality rubric classifier → drop.
+    Decision order: blocklist → allowlist (+ solicit gate) → gazetteer
+    other-entity → hard negative / gazetteer local / strong regex →
+    event+venue → ambiguous+context → soft prior → quality rubric classifier
+    → drop.
 
     Provisional regex/allowlist keeps that look like money asks are rechecked
     by the quality rubric when available; otherwise they are dropped.
@@ -573,10 +577,17 @@ def match_post(
     """
     allowlist_dids = allowlist_dids or set()
     allowlist_handles = {h.lower() for h in (allowlist_handles or set())}
+    blocklist_dids = blocklist_dids or set()
+    blocklist_handles = {h.lower() for h in (blocklist_handles or set())}
     soft_prior_dids = soft_prior_dids or set()
     places = gazetteer if gazetteer is not None else default_gazetteer()
     lang_tags = _normalize_langs(langs)
     backend = classifier if classifier is not None else classifier_model
+
+    if author_did and author_did in blocklist_dids:
+        return MatchResult(False, 'blocklist_did')
+    if author_handle and author_handle.lower() in blocklist_handles:
+        return MatchResult(False, 'blocklist_handle')
 
     haystack = combine_text(text, alt_text=alt_text, langs=lang_tags)
 

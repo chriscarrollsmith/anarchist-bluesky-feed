@@ -76,6 +76,24 @@ def test_evaluate_post_keeps_strong_local() -> None:
     assert reason == 'strong_positive'
 
 
+def test_evaluate_post_drops_blocklisted_author() -> None:
+    post = {
+        'uri': 'at://did:plc:blocked/app.bsky.feed.post/1',
+        'author': {'did': 'did:plc:blocked', 'handle': 'blocked.bsky.social'},
+        'record': {'text': 'Mutual aid fridge restocked tonight'},
+    }
+    matched, reason = evaluate_post(
+        post,
+        allowlist_dids=set(),
+        allowlist_handles=set(),
+        soft_prior_dids=set(),
+        blocklist_dids={'did:plc:blocked'},
+        ignore_replies=True,
+    )
+    assert matched is False
+    assert reason == 'blocklist_did'
+
+
 def test_load_uris_and_purge(tmp_path: Path) -> None:
     db_path = tmp_path / 'feed.db'
     con = sqlite3.connect(str(db_path))

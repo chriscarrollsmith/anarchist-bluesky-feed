@@ -41,3 +41,5 @@ command reference. Dependencies are managed with [uv](https://docs.astral.sh/uv/
 - After editing `data/allowlist_handles.txt`, refresh DIDs with
   `uv run python scripts/resolve_allowlist_dids.py` before relying on Jetstream
   recall.
+- After editing `data/blocklist_handles.txt`, refresh DIDs with
+  `uv run python scripts/resolve_allowlist_dids.py --handles data/blocklist_handles.txt --output data/blocklist_dids.txt`.

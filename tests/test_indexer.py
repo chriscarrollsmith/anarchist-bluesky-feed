@@ -92,6 +92,41 @@ def test_handle_event_records_strong_match_and_soft_prior_keeps_bare(isolated_db
     assert row.match_reason == 'soft_prior_ambiguous:direct action'
 
 
+def test_handle_event_skips_blocklisted_did_with_strong_text(isolated_db: None) -> None:
+    from server import config
+    from server.indexer import handle_event
+
+    assert config.BLOCKLIST_DIDS, 'production DID blocklist must be populated'
+    author = sorted(config.BLOCKLIST_DIDS)[0]
+    event = _create_event(author=author, text='Neighborhood mutual aid fridge restocked tonight.')
+    handle_event(event)
+    assert Post.select().where(Post.uri == event['uri']).count() == 0
+
+
+def test_purge_blocklisted_posts_deletes_indexed_rows(isolated_db: None) -> None:
+    from server import config
+    from server.indexer import purge_blocklisted_posts
+
+    assert config.BLOCKLIST_DIDS
+    author = sorted(config.BLOCKLIST_DIDS)[0]
+    Post.create(
+        uri=f'at://{author}/app.bsky.feed.post/old',
+        cid='bafytestcid',
+        author_did=author,
+        match_reason='strong_positive',
+    )
+    other = 'did:plc:notblocklisted0000000000001'
+    Post.create(
+        uri=f'at://{other}/app.bsky.feed.post/keep',
+        cid='bafytestcid2',
+        author_did=other,
+        match_reason='strong_positive',
+    )
+    assert purge_blocklisted_posts() == 1
+    assert Post.select().where(Post.author_did == author).count() == 0
+    assert Post.select().where(Post.author_did == other).count() == 1
+
+
 def test_handle_event_archived_uses_event_time_not_wall_clock(isolated_db: None) -> None:
     """Catch-up must not drop posts that were fresh at firehose time_us."""
     from datetime import timedelta

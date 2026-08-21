@@ -42,7 +42,12 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from server.allowlists import load_allowlist_dids, load_allowlist_handles  # noqa: E402
+from server.allowlists import (  # noqa: E402
+    load_allowlist_dids,
+    load_allowlist_handles,
+    load_blocklist_dids,
+    load_blocklist_handles,
+)
 from server.matcher import match_post  # noqa: E402
 
 
@@ -102,11 +107,17 @@ def evaluate_cases(
     *,
     allowlist_handles: set[str] | None = None,
     allowlist_dids: set[str] | None = None,
+    blocklist_handles: set[str] | None = None,
+    blocklist_dids: set[str] | None = None,
     soft_prior_dids: set[str] | None = None,
     verbose: bool = False,
 ) -> EvalReport:
     handles = allowlist_handles if allowlist_handles is not None else load_allowlist_handles()
     dids = allowlist_dids if allowlist_dids is not None else load_allowlist_dids()
+    blocked_handles = (
+        blocklist_handles if blocklist_handles is not None else load_blocklist_handles()
+    )
+    blocked_dids = blocklist_dids if blocklist_dids is not None else load_blocklist_dids()
     report = EvalReport()
 
     for case in cases:
@@ -122,6 +133,8 @@ def evaluate_cases(
             author_handle=case.get('author_handle'),
             allowlist_dids=dids,
             allowlist_handles=handles,
+            blocklist_dids=blocked_dids,
+            blocklist_handles=blocked_handles,
             soft_prior_dids=case_soft,
             embed=case.get('embed'),
         )

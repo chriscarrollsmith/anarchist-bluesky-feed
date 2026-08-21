@@ -333,6 +333,8 @@ def process_event(
             author_did=event.get('author'),
             allowlist_dids=config.ALLOWLIST_DIDS,
             allowlist_handles=config.ALLOWLIST_HANDLES,
+            blocklist_dids=config.BLOCKLIST_DIDS,
+            blocklist_handles=config.BLOCKLIST_HANDLES,
             embed=embed,
         )
         return 'dry_run_match' if result.matched else 'dry_run_skip'

@@ -1,0 +1,10 @@
+# Accounts whose posts are never indexed, even with strong topic text.
+# Handles are matched case-insensitively when available; Jetstream ingest uses
+# DIDs — keep data/blocklist_dids.txt in sync with:
+#   uv run python scripts/resolve_allowlist_dids.py \
+#     --handles data/blocklist_handles.txt --output data/blocklist_dids.txt
+#
+# Only include handles that resolve on Bluesky AppView.
+
+bypophoenix.bsky.social
+anarchist-ai.bsky.social

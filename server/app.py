@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse, Response
 
 from server import config
 from server.algos import algos
-from server.indexer import handle_event
+from server.indexer import handle_event, purge_blocklisted_posts
 from server.jetstream import cursor_lag_seconds
 from server.jetstream import run as run_jetstream
 from server.logger import logger
@@ -21,6 +21,7 @@ stream_thread: threading.Thread | None = None
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     global stream_thread
     stream_stop_event.clear()
+    purge_blocklisted_posts()
     stream_thread = threading.Thread(
         target=run_jetstream,
         args=(config.SERVICE_DID, handle_event, stream_stop_event),

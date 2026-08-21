@@ -3,7 +3,12 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from server.allowlists import load_allowlist_dids, load_allowlist_handles
+from server.allowlists import (
+    load_allowlist_dids,
+    load_allowlist_handles,
+    load_blocklist_dids,
+    load_blocklist_handles,
+)
 from server.classifier import FakeClassifier
 from server.matcher import extract_alt_text, is_opaque_record_embed, match_post
 
@@ -14,6 +19,8 @@ CASES = [c for c in ALL_CASES if c.get('regression', True)]
 
 ALLOWLIST_HANDLES = load_allowlist_handles()
 ALLOWLIST_DIDS = load_allowlist_dids()
+BLOCKLIST_HANDLES = load_blocklist_handles()
+BLOCKLIST_DIDS = load_blocklist_dids()
 
 
 @pytest.mark.parametrize('case', CASES, ids=[c['id'] for c in CASES])
@@ -30,6 +37,8 @@ def test_eval_case(case: dict[str, Any]) -> None:
         author_handle=case.get('author_handle'),
         allowlist_dids=ALLOWLIST_DIDS,
         allowlist_handles=ALLOWLIST_HANDLES,
+        blocklist_dids=BLOCKLIST_DIDS,
+        blocklist_handles=BLOCKLIST_HANDLES,
         soft_prior_dids=soft_prior_dids,
         embed=case.get('embed'),
     )
@@ -78,6 +87,38 @@ def test_allowlist_did_matches_without_handle_or_keywords() -> None:
     )
     assert result.matched is True
     assert result.reason == 'allowlist_did'
+
+
+def test_blocklist_drops_even_with_strong_text() -> None:
+    result = match_post(
+        'Neighborhood mutual aid fridge restocked tonight.',
+        author_did='did:plc:blocklisted00000000000001',
+        author_handle='blocked.bsky.social',
+        blocklist_dids={'did:plc:blocklisted00000000000001'},
+        blocklist_handles={'blocked.bsky.social'},
+    )
+    assert result.matched is False
+    assert result.reason == 'blocklist_did'
+
+    by_handle = match_post(
+        'Neighborhood mutual aid fridge restocked tonight.',
+        author_handle='blocked.bsky.social',
+        blocklist_handles={'blocked.bsky.social'},
+    )
+    assert by_handle.matched is False
+    assert by_handle.reason == 'blocklist_handle'
+
+
+def test_blocklist_beats_allowlist() -> None:
+    did = 'did:plc:allowandblock00000000000001'
+    result = match_post(
+        'Our newsletter is out for subscribers.',
+        author_did=did,
+        allowlist_dids={did},
+        blocklist_dids={did},
+    )
+    assert result.matched is False
+    assert result.reason == 'blocklist_did'
 
 
 def test_event_local_venue_requires_cue_and_venue() -> None:

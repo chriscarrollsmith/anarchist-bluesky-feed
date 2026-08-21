@@ -4,8 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from scripts.resolve_allowlist_dids import build_did_file
-from server.allowlists import load_allowlist_dids, load_allowlist_handles, load_list_file
+from scripts.resolve_allowlist_dids import build_did_file, list_kind_from_handles_path
+from server.allowlists import (
+    load_allowlist_dids,
+    load_allowlist_handles,
+    load_blocklist_dids,
+    load_blocklist_handles,
+    load_list_file,
+)
 
 
 def test_load_list_file_skips_comments_and_blanks(tmp_path: Path) -> None:
@@ -26,6 +32,16 @@ def test_production_allowlists_are_nonempty_and_aligned() -> None:
     assert len(dids) == len(handles)
 
 
+def test_production_blocklists_are_aligned() -> None:
+    handles = load_blocklist_handles()
+    dids = load_blocklist_dids()
+    assert all(h == h.lower() for h in handles)
+    assert all(d.startswith('did:') for d in dids)
+    assert len(dids) == len(handles)
+    assert 'bypophoenix.bsky.social' in handles
+    assert 'anarchist-ai.bsky.social' in handles
+
+
 def test_build_did_file_includes_handle_provenance() -> None:
     text = build_did_file(
         [
@@ -36,3 +52,10 @@ def test_build_did_file_includes_handle_provenance() -> None:
     assert '# timesunion.com' in text
     assert 'did:plc:exampletimesunion' in text
     assert 'resolve_allowlist_dids.py' in text
+    blocked = build_did_file(
+        [('bypophoenix.bsky.social', 'did:plc:vdykwvsuhnim6beywhcqje7r')],
+        kind='blocklist',
+    )
+    assert '# bypophoenix.bsky.social' in blocked
+    assert 'blocklist_handles.txt' in blocked
+    assert list_kind_from_handles_path(Path('data/blocklist_handles.txt')) == 'blocklist'

@@ -2,9 +2,9 @@
 """Rematch live feed / indexed SQLite posts against the current matcher.
 
 Indexed rows store URI metadata only (no text). This tool hydrates records from
-the Bluesky AppView, runs ``match_post`` with production allowlists (and optional
-soft priors from ``AuthorLocalStats``), and reports posts that would no longer
-keep. Use ``--purge`` on a database path to delete those URIs.
+the Bluesky AppView, runs ``match_post`` with production allowlists/blocklists
+(and optional soft priors from ``AuthorLocalStats``), and reports posts that
+would no longer keep. Use ``--purge`` on a database path to delete those URIs.
 
 Examples:
 
@@ -42,7 +42,12 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from server.allowlists import load_allowlist_dids, load_allowlist_handles  # noqa: E402
+from server.allowlists import (  # noqa: E402
+    load_allowlist_dids,
+    load_allowlist_handles,
+    load_blocklist_dids,
+    load_blocklist_handles,
+)
 from server.matcher import extract_alt_text, match_post  # noqa: E402
 
 DEFAULT_API_HOST = 'https://api.bsky.app'
@@ -250,6 +255,8 @@ def evaluate_post(
     allowlist_handles: set[str],
     soft_prior_dids: set[str],
     ignore_replies: bool = IGNORE_REPLY_POSTS,
+    blocklist_dids: set[str] | None = None,
+    blocklist_handles: set[str] | None = None,
 ) -> tuple[bool, str]:
     """Return (matched, reason) using the same gates as indexer.create."""
     record = post.get('record') if isinstance(post.get('record'), dict) else {}
@@ -274,6 +281,8 @@ def evaluate_post(
         author_handle=author.get('handle') if isinstance(author, dict) else None,
         allowlist_dids=allowlist_dids,
         allowlist_handles=allowlist_handles,
+        blocklist_dids=blocklist_dids or set(),
+        blocklist_handles=blocklist_handles or set(),
         soft_prior_dids=soft_prior_dids,
         embed=post.get('embed') if isinstance(post.get('embed'), dict) else None,
     )
@@ -288,6 +297,8 @@ def audit_uris(
     allowlist_dids: set[str],
     allowlist_handles: set[str],
     soft_prior_dids: set[str],
+    blocklist_dids: set[str] | None = None,
+    blocklist_handles: set[str] | None = None,
 ) -> list[AuditRow]:
     uris = [uri for uri, _ in uri_rows]
     indexed = {uri: reason for uri, reason in uri_rows}
@@ -319,6 +330,8 @@ def audit_uris(
             allowlist_dids=allowlist_dids,
             allowlist_handles=allowlist_handles,
             soft_prior_dids=soft_prior_dids,
+            blocklist_dids=blocklist_dids,
+            blocklist_handles=blocklist_handles,
         )
         did = author.get('did')
         handle = author.get('handle')
@@ -436,6 +449,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     allowlist_dids = load_allowlist_dids()
     allowlist_handles = load_allowlist_handles()
+    blocklist_dids = load_blocklist_dids()
+    blocklist_handles = load_blocklist_handles()
 
     if args.source == 'feed':
         if not args.feed:
@@ -471,6 +486,8 @@ def main(argv: list[str] | None = None) -> int:
         allowlist_dids=allowlist_dids,
         allowlist_handles=allowlist_handles,
         soft_prior_dids=soft_prior_dids,
+        blocklist_dids=blocklist_dids,
+        blocklist_handles=blocklist_handles,
     )
     print_report(rows)
 

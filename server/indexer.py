@@ -128,6 +128,8 @@ def handle_event(event: dict[str, Any]) -> None:
         author_did=author_did,
         allowlist_dids=config.ALLOWLIST_DIDS,
         allowlist_handles=config.ALLOWLIST_HANDLES,
+        blocklist_dids=config.BLOCKLIST_DIDS,
+        blocklist_handles=config.BLOCKLIST_HANDLES,
         soft_prior_dids=soft_prior_dids,
         embed=embed,
     )
@@ -156,3 +158,13 @@ def handle_event(event: dict[str, Any]) -> None:
 
     logger.info('indexed %s reason=%s', uri, result.reason)
     _maybe_prune()
+
+
+def purge_blocklisted_posts() -> int:
+    """Delete indexed posts whose author is on the production blocklist."""
+    if not config.BLOCKLIST_DIDS:
+        return 0
+    deleted = Post.delete().where(Post.author_did << list(config.BLOCKLIST_DIDS)).execute()
+    if deleted:
+        logger.info('purged %s posts from blocklisted authors', deleted)
+    return deleted

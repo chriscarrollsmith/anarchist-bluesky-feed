@@ -533,5 +533,29 @@
         "cid": "bafyreiopaquequote000000000000000000000000000000001"
       }
     }
+  },
+  {
+    "id": "fp-blocklist-bypophoenix",
+    "text": "Neighborhood mutual aid fridge restocked \u2014 take what you need.",
+    "expected": false,
+    "note": "blocklisted author dropped even with strong text",
+    "signal": "author",
+    "bucket": "author_blocklist",
+    "split": "dev",
+    "regression": true,
+    "author_handle": "bypophoenix.bsky.social",
+    "author_did": "did:plc:vdykwvsuhnim6beywhcqje7r"
+  },
+  {
+    "id": "fp-blocklist-anarchist-ai",
+    "text": "Neighborhood mutual aid fridge restocked \u2014 take what you need.",
+    "expected": false,
+    "note": "blocklisted AI account dropped even with strong text",
+    "signal": "author",
+    "bucket": "author_blocklist",
+    "split": "dev",
+    "regression": true,
+    "author_handle": "anarchist-ai.bsky.social",
+    "author_did": "did:plc:4gtw7ntkwjftnhr5vjw5aojv"
   }
 ]

@@ -2,7 +2,12 @@ import os
 
 from dotenv import load_dotenv
 
-from server.allowlists import load_allowlist_dids, load_allowlist_handles
+from server.allowlists import (
+    load_allowlist_dids,
+    load_allowlist_handles,
+    load_blocklist_dids,
+    load_blocklist_handles,
+)
 from server.logger import logger
 
 # Override process env so a shell HOSTNAME cannot beat .env / Fly config.
@@ -70,9 +75,12 @@ DEEPSEEK_API_KEY_SET = bool(os.environ.get('DEEPSEEK_API_KEY', '').strip())
 
 ALLOWLIST_DIDS = load_allowlist_dids()
 ALLOWLIST_HANDLES = load_allowlist_handles()
+BLOCKLIST_DIDS = load_blocklist_dids()
+BLOCKLIST_HANDLES = load_blocklist_handles()
 
 logger.info(
     'config loaded hostname=%s service_did=%s allowlist_dids=%d allowlist_handles=%d '
+    'blocklist_dids=%d blocklist_handles=%d '
     'soft_prior_min=%d soft_prior_window_days=%d ranking_mode=%s muted_keywords=%d '
     'classifier_enabled=%s classifier_model=%s deepseek_key=%s '
     'rubric_thematic>=%.2f valence>=%.2f wow>=%.2f solicit<=%.2f composite>=%.2f',
@@ -80,6 +88,8 @@ logger.info(
     SERVICE_DID,
     len(ALLOWLIST_DIDS),
     len(ALLOWLIST_HANDLES),
+    len(BLOCKLIST_DIDS),
+    len(BLOCKLIST_HANDLES),
     SOFT_PRIOR_MIN_STRONG,
     SOFT_PRIOR_WINDOW_DAYS,
     RANKING_MODE,

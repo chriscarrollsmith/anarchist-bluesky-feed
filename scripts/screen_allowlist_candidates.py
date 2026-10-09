@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Screen Bluesky accounts for anarchist allowlist fitness.
+"""Screen Bluesky accounts for mutualist allowlist fitness.
 
 Fetches recent author-feed samples and flags volume / templated-slop risks so
 selection passes can keep a high signal/noise ratio.
@@ -31,7 +31,7 @@ sys.path.insert(0, str(ROOT))
 from server.allowlists import load_list_file  # noqa: E402
 
 DEFAULT_API_HOST = 'https://api.bsky.app'
-USER_AGENT = 'anarchist-bluesky-feed-screen/0.1 (+https://github.com/chriscarrollsmith/anarchist-bluesky-feed)'
+USER_AGENT = 'mutualist-bluesky-feed-screen/0.1 (+https://github.com/chriscarrollsmith/mutualist-bluesky-feed)'
 
 # Soft thresholds for always-keep allowlisting (not matcher hard rules).
 HIGH_VOLUME_PPD = 20.0

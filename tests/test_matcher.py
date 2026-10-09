@@ -77,13 +77,12 @@ def test_soft_prior_unlocks_bare_ambiguous_not_hard_negative() -> None:
 
 
 def test_allowlist_did_matches_without_handle_or_keywords() -> None:
-    assert ALLOWLIST_DIDS, 'allowlist_dids.txt must be populated for production recall'
-    did = next(iter(sorted(ALLOWLIST_DIDS)))
+    did = 'did:plc:allowlisttest00000000000001'
     result = match_post(
         'Thanks for reading — more updates tomorrow.',
         author_did=did,
-        allowlist_dids=ALLOWLIST_DIDS,
-        allowlist_handles=ALLOWLIST_HANDLES,
+        allowlist_dids={did},
+        allowlist_handles=set(),
     )
     assert result.matched is True
     assert result.reason == 'allowlist_did'
@@ -91,7 +90,7 @@ def test_allowlist_did_matches_without_handle_or_keywords() -> None:
 
 def test_blocklist_drops_even_with_strong_text() -> None:
     result = match_post(
-        'Neighborhood mutual aid fridge restocked tonight.',
+        'Proudhonian mutualism reading group on mutual credit tonight.',
         author_did='did:plc:blocklisted00000000000001',
         author_handle='blocked.bsky.social',
         blocklist_dids={'did:plc:blocklisted00000000000001'},
@@ -101,7 +100,7 @@ def test_blocklist_drops_even_with_strong_text() -> None:
     assert result.reason == 'blocklist_did'
 
     by_handle = match_post(
-        'Neighborhood mutual aid fridge restocked tonight.',
+        'Proudhonian mutualism reading group on mutual credit tonight.',
         author_handle='blocked.bsky.social',
         blocklist_handles={'blocked.bsky.social'},
     )
@@ -122,11 +121,11 @@ def test_blocklist_beats_allowlist() -> None:
 
 
 def test_event_local_venue_requires_cue_and_venue() -> None:
-    keep = match_post('Free skol workshop this Saturday — doors at 6, bring a dish.')
+    keep = match_post('Really Really Free Market this Saturday in the park — bring what you can.')
     assert keep.matched is True
     assert keep.reason.startswith('event_local_venue:')
 
-    no_cue = match_post('The free skol building needs a new roof.')
+    no_cue = match_post('The really really free market archive needs a new index.')
     assert no_cue.matched is False
 
     off_topic = match_post('Tickets on sale for Saturday comedy night at The Fillmore. Doors at 7.')
@@ -135,10 +134,24 @@ def test_event_local_venue_requires_cue_and_venue() -> None:
 
 def test_critique_of_ancap_still_keeps() -> None:
     result = match_post(
-        'Anarchism is not anarcho-capitalism. Anarchists abolish bosses and landlords.'
+        'Mutualism is not anarcho-capitalism. Mutual credit abolishes capitalist title.'
     )
     assert result.matched is True
     assert result.reason in {'strong_positive_over_negative', 'strong_positive'}
+
+
+def test_bare_mutual_aid_does_not_keep() -> None:
+    result = match_post(
+        'Neighborhood mutual aid fridge restocked — take what you need, share what you can.'
+    )
+    assert result.matched is False
+
+
+def test_mutual_aid_with_mutualist_economics_keeps() -> None:
+    result = match_post(
+        'Neighborhood mutual aid pairs with mutual credit so reciprocity is not charity.'
+    )
+    assert result.matched is True
 
 
 def test_classifier_can_keep_ambiguous_co_op() -> None:
@@ -154,12 +167,12 @@ def test_classifier_can_keep_ambiguous_co_op() -> None:
 def test_extract_alt_text_clips_external_description() -> None:
     embed = {
         'external': {
-            'title': 'Mutual aid zine',
+            'title': 'Mutual credit zine',
             'description': 'x' * 500,
         }
     }
     alt = extract_alt_text(embed)
-    assert 'Mutual aid zine' in alt
+    assert 'Mutual credit zine' in alt
     assert len(alt) < 500
 
 
@@ -168,10 +181,10 @@ def test_extract_alt_text_from_hydrated_quote_value() -> None:
         '$type': 'app.bsky.embed.record#view',
         'record': {
             'uri': 'at://did:plc:x/app.bsky.feed.post/3y',
-            'value': {'text': 'Quoted mutual aid fridge note', 'embed': None},
+            'value': {'text': 'Quoted mutual credit note', 'embed': None},
         },
     }
-    assert 'Quoted mutual aid fridge note' in extract_alt_text(embed)
+    assert 'Quoted mutual credit note' in extract_alt_text(embed)
     assert not is_opaque_record_embed(embed)
 
 

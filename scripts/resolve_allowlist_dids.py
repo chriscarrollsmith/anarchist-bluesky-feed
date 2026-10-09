@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT))
 from server.allowlists import DIDS_PATH, HANDLES_PATH, load_list_file  # noqa: E402
 
 DEFAULT_API_HOST = 'https://api.bsky.app'
-USER_AGENT = 'anarchist-bluesky-feed-resolve/0.1 (+https://github.com/chriscarrollsmith/anarchist-bluesky-feed)'
+USER_AGENT = 'mutualist-bluesky-feed-resolve/0.1 (+https://github.com/chriscarrollsmith/mutualist-bluesky-feed)'
 
 
 def resolve_handle(handle: str, *, api_host: str, timeout: float = 30.0) -> str:

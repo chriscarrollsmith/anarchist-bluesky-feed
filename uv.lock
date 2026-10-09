@@ -3,47 +3,6 @@ revision = 3
 requires-python = ">=3.14"
 
 [[package]]
-name = "anarchist-bluesky-feed"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "atproto" },
-    { name = "fastapi" },
-    { name = "peewee" },
-    { name = "python-dotenv" },
-    { name = "uvicorn" },
-    { name = "websockets" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "httpx" },
-    { name = "httpx2" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "ty" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "atproto" },
-    { name = "fastapi" },
-    { name = "peewee" },
-    { name = "python-dotenv" },
-    { name = "uvicorn" },
-    { name = "websockets" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "httpx" },
-    { name = "httpx2", specifier = ">=2.9.1" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "ty" },
-]
-
-[[package]]
 name = "annotated-doc"
 version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -361,6 +320,47 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/74/69/1ee85b8a024e2fd2049fb20e1158b61cdd97452b1bec54169796ba99e994/libipld-3.4.1-cp314-cp314-win32.whl", hash = "sha256:6eab7b7a9279f66837c2028a072b8150635a69a28d6f9fda85b38aa8ae275b01", size = 156242, upload-time = "2026-05-27T17:41:45.051Z" },
     { url = "https://files.pythonhosted.org/packages/d7/fd/091032af546c828bcd25859404534c8ac93897aa884800841a5358b3cb02/libipld-3.4.1-cp314-cp314-win_amd64.whl", hash = "sha256:294d076f08e13039e21a5fe8a791d60ef2798c5000ab146cbe86a06f38acb466", size = 166100, upload-time = "2026-05-27T17:41:46.649Z" },
     { url = "https://files.pythonhosted.org/packages/53/be/6e949dfa7245bcddce25a7ef2c73590e104403f7816f2ee3a0fe37fa2e09/libipld-3.4.1-cp314-cp314-win_arm64.whl", hash = "sha256:4f49e81ba70b43d0d55e94e71d2fdb34b97d3c62af2859c98dd385a6b884bceb", size = 150208, upload-time = "2026-05-27T17:41:48.017Z" },
+]
+
+[[package]]
+name = "mutualist-bluesky-feed"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "atproto" },
+    { name = "fastapi" },
+    { name = "peewee" },
+    { name = "python-dotenv" },
+    { name = "uvicorn" },
+    { name = "websockets" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "httpx" },
+    { name = "httpx2" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "ty" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "atproto" },
+    { name = "fastapi" },
+    { name = "peewee" },
+    { name = "python-dotenv" },
+    { name = "uvicorn" },
+    { name = "websockets" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "httpx" },
+    { name = "httpx2", specifier = ">=2.9.1" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "ty" },
 ]
 
 [[package]]

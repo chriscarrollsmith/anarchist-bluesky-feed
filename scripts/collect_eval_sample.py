@@ -35,7 +35,7 @@ from server.allowlists import load_list_file  # noqa: E402
 
 DEFAULT_API_HOST = 'https://api.bsky.app'
 USER_AGENT = (
-    'anarchist-bluesky-feed-eval/0.1 (+https://github.com/chriscarrollsmith/anarchist-bluesky-feed)'
+    'mutualist-bluesky-feed-eval/0.1 (+https://github.com/chriscarrollsmith/mutualist-bluesky-feed)'
 )
 
 NEAR_MISS_QUERIES = (
@@ -49,17 +49,20 @@ NEAR_MISS_QUERIES = (
     'state of anarchy',
     'this is anarchy',
     'Rothbard anarchism',
+    'anarcho-syndicalism',
+    'Food Not Bombs',
+    'CrimethInc',
 )
 
 EVENT_QUERIES = (
-    'anarchist bookfair',
-    'infoshop teach-in',
-    'Food Not Bombs tonight',
-    'mutual aid distro',
-    'zine distro weekend',
-    'IWW meeting',
-    'dual power assembly',
-    'free skol workshop',
+    'mutualist reading',
+    'mutualism meetup',
+    'mutual credit workshop',
+    'Proudhon reading circle',
+    'Really Really Free Market',
+    'occupancy and use teach-in',
+    'agorism meetup',
+    'C4SS event',
 )
 
 EVENT_CUE_RE = re.compile(

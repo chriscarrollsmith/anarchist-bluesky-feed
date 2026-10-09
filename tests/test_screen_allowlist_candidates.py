@@ -42,9 +42,9 @@ def test_collect_flags_detects_volume_bot_and_slop() -> None:
 
 def test_collect_flags_clean_account() -> None:
     flags, slop = collect_flags(
-        handle='akpress.org',
-        display_name='AK Press',
-        description='Worker-run anarchist publisher',
+        handle='c4ss.org',
+        display_name='C4SS',
+        description='Center for a Stateless Society',
         ppd_7d=0.6,
         ppd_30d=0.7,
         unique_prefix_ratio=0.95,

@@ -2,9 +2,9 @@
 """Evaluate matcher precision/recall against labeled fixtures.
 
 Product policy (see README): optimize for **both** false positives and false
-negatives. Ancap / chaos / crypto false friends and personal fundraising
-wrapped as “mutual aid” must stay out, but allowlisted collectives and
-mutual-aid praxis should match even without explicit keywords.
+negatives. Ancap / chaos / crypto false friends, sibling anarchist tendencies,
+bare mutual aid, and personal fundraising must stay out; mutualist economics
+and allowlisted mutualist voices should match.
 
 Reports aggregate metrics plus stratification by ``bucket`` / ``signal`` and a
 ``dev`` vs ``holdout`` split so matcher changes are not judged only on the set

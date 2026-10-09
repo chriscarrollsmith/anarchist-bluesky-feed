@@ -22,12 +22,13 @@ def test_match_post_entity_other_and_local() -> None:
     assert other.matched is False
     assert other.reason in {'entity_other:anarchy_online', 'hard_negative'}
 
-    local = match_post('Black Rose Anarchist Federation published a new primer.')
+    sibling = match_post('Black Rose Anarchist Federation published a new primer.')
+    assert sibling.matched is False
+    assert sibling.reason == 'entity_other:black_rose_anarchist_federation'
+
+    local = match_post('New C4SS essay on left-wing market anarchism.')
     assert local.matched is True
-    assert local.reason in {
-        'entity_local:black_rose_anarchist_federation',
-        'strong_positive',
-    }
+    assert local.reason in {'entity_local:c4ss', 'strong_positive'}
 
 
 def test_load_gazetteer_rejects_unknown_region(tmp_path: Path) -> None:

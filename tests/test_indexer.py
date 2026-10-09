@@ -35,12 +35,14 @@ def _create_event(*, author: str, text: str, uri_key: str = 'abc') -> dict[str, 
     }
 
 
-def test_handle_event_indexes_allowlisted_did_without_placename(isolated_db: None) -> None:
+def test_handle_event_indexes_allowlisted_did_without_placename(
+    isolated_db: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
     from server import config
     from server.indexer import handle_event
 
-    assert config.ALLOWLIST_DIDS, 'production DID allowlist must be populated'
-    author = sorted(config.ALLOWLIST_DIDS)[0]
+    author = 'did:plc:allowlisttest00000000000001'
+    monkeypatch.setattr(config, 'ALLOWLIST_DIDS', {author})
     event = _create_event(author=author, text='Our newsletter is out for subscribers.')
     handle_event(event)
 
@@ -50,7 +52,6 @@ def test_handle_event_indexes_allowlisted_did_without_placename(isolated_db: Non
 
 
 def test_handle_event_skips_unknown_author_without_placename(isolated_db: None) -> None:
-    from server import config
     from server.indexer import handle_event
 
     event = _create_event(
@@ -60,7 +61,6 @@ def test_handle_event_skips_unknown_author_without_placename(isolated_db: None) 
     )
     handle_event(event)
     assert Post.select().where(Post.uri == event['uri']).count() == 0
-    assert config.ALLOWLIST_DIDS
 
 
 def test_handle_event_records_strong_match_and_soft_prior_keeps_bare(isolated_db: None) -> None:
@@ -75,7 +75,7 @@ def test_handle_event_records_strong_match_and_soft_prior_keeps_bare(isolated_db
         handle_event(
             _create_event(
                 author=author,
-                text=f'Mutual aid restock update {i}.',
+                text=f'Mutual credit clearing update {i}.',
                 uri_key=f'strong{i}',
             )
         )
@@ -98,7 +98,7 @@ def test_handle_event_skips_blocklisted_did_with_strong_text(isolated_db: None) 
 
     assert config.BLOCKLIST_DIDS, 'production DID blocklist must be populated'
     author = sorted(config.BLOCKLIST_DIDS)[0]
-    event = _create_event(author=author, text='Neighborhood mutual aid fridge restocked tonight.')
+    event = _create_event(author=author, text='Neighborhood mutual credit clearing tonight.')
     handle_event(event)
     assert Post.select().where(Post.uri == event['uri']).count() == 0
 
@@ -127,14 +127,17 @@ def test_purge_blocklisted_posts_deletes_indexed_rows(isolated_db: None) -> None
     assert Post.select().where(Post.author_did == other).count() == 1
 
 
-def test_handle_event_archived_uses_event_time_not_wall_clock(isolated_db: None) -> None:
+def test_handle_event_archived_uses_event_time_not_wall_clock(
+    isolated_db: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Catch-up must not drop posts that were fresh at firehose time_us."""
     from datetime import timedelta
 
     from server import config
     from server.indexer import handle_event
 
-    author = sorted(config.ALLOWLIST_DIDS)[0]
+    author = 'did:plc:allowlisttest00000000000001'
+    monkeypatch.setattr(config, 'ALLOWLIST_DIDS', {author})
     # Created ~30h before wall clock, but event time_us is only 2h after createdAt.
     created = datetime.now(UTC) - timedelta(hours=30)
     event_time = created + timedelta(hours=2)

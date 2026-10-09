@@ -35,13 +35,13 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         stream_stop_event.set()
 
 
-app = FastAPI(title='anarchist-bluesky-feed', lifespan=lifespan)
+app = FastAPI(title='mutualist-bluesky-feed', lifespan=lifespan)
 
 
 @app.get('/')
 def index() -> dict[str, str]:
     return {
-        'service': 'anarchist-bluesky-feed',
+        'service': 'mutualist-bluesky-feed',
         'did': config.SERVICE_DID,
         'feed': config.FEED_URI,
     }

@@ -1,16 +1,20 @@
-"""Prosocial anarchist post matcher.
+"""Mutualist post matcher.
 
-Keeps posts that celebrate or practice anarchism under a broad definition:
-movements and projects that want to decentralize both political power and
-capital — mutual aid, dual power, horizontal organizing, worker autonomy,
-commons stewardship, and related anti-authoritarian currents.
+Keeps posts that celebrate or practice Proudhonian mutualism and closely
+related left-market / libertarian-socialist currents: reciprocity, possession
+(occupancy-and-use), mutual credit, free banking, agorism, and free-market
+anti-capitalism. Kropotkin is in scope; Bakuninist collectivism, anarcho-
+communism, syndicalism, and similar sibling tendencies are not.
 
 Rejects common false positives:
 - Anarcho-capitalism / right-"libertarian" market fundamentalism
 - Chaos / entertainment uses of "anarchy" without political content
-- Crypto/Web3 "decentralized" jargon without anarchist values
-- Bare ambiguous left terms without anarchist context
+- Crypto/Web3 "decentralized" jargon without mutualist values
+- Bare ambiguous left terms without mutualist context
+- Mutual aid without mutualist-economics framing
 - Personal fundraising / extractive "mutual aid" money asks (quality rubric)
+- Hate and violence celebration (quality rubric; defiance / non-violent
+  resistance may still keep)
 
 Recall without keywords comes from author allowlists and soft author priors
 earned from repeated strong text matches. Author blocklists drop an account
@@ -36,8 +40,48 @@ class MatchResult:
     reason: str
 
 
-# Phrases that almost always mean prosocial / left anarchism.
+# Phrases that almost always mean mutualism / left-market mutualist economics.
 _STRONG_POSITIVE = re.compile(
+    r"""
+    (?:
+        \#mutualism\b
+      | \#mutualist\b
+      | \#agorism\b
+      | \bmutualism\b
+      | \bmutualists?\b
+      | \bproudhon\b
+      | proudhonian
+      | josiah\s+warren
+      | benjamin\s+tucker
+      | william\s+b\.?\s+greene
+      | dyer\s+lum
+      | kevin\s+carson
+      | \bkropotkin\b
+      | center\s+for\s+a\s+stateless\s+society
+      | \bc4ss\b
+      | occupancy[\s-]and[\s-]use
+      | possession\s+(?:not|vs\.?|versus)\s+property
+      | property\s+is\s+theft
+      | mutual\s+credit
+      | free\s+bank(?:ing|s)?
+      | people'?s\s+bank
+      | cost\s+the\s+limit\s+of\s+price
+      | equitable\s+commerce
+      | \bagorism\b
+      | \bagorists?\b
+      | left[\s-]?wing\s+market\s+anarch
+      | market\s+anarchis(?:m|t)s?
+      | free[\s-]market\s+anti[\s-]?capital
+      | anti[\s-]?capitalist\s+free[\s-]market
+      | mutualist\s+economics?
+    )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+# Ambiguous terms that need mutualist context (or AI).
+# Includes bare anarchism, mutual aid, and broad left-market labels.
+_AMBIGUOUS_TERM = re.compile(
     r"""
     (?:
         \#anarchism\b
@@ -45,106 +89,67 @@ _STRONG_POSITIVE = re.compile(
       | \#anarchy\b
       | \#mutualaid\b
       | \#directaction\b
-      | \#anarchocommunism\b
-      | \#anarchosyndicalism\b
       | \banarchism\b
       | \banarchists?\b
-      | anarcho[\s-]?syndical(?:ism|ist)s?
-      | anarcho[\s-]?communis(?:m|t)s?
-      | anarcho[\s-]?feminis(?:m|t)s?
-      | anarcho[\s-]?primitivis(?:m|t)s?
-      | mutual\s+aid
-      | dual\s+power
-      | prefigurative(?:\s+politics)?
-      | horizontalis[mt]
-      | horizontalidad
-      | food\s+not\s+bombs
-      | \bcrimethinc\b
-      | no\s+gods?,?\s+no\s+masters
-      | free\s+association
-      | affinity\s+groups?
-      | \binfoshops?\b
-      | anarchist\s+bookfair
-      | black\s+rose\s+anarchist
-      | institute\s+for\s+anarchist\s+studies
-      | perspectives\s+on\s+anarchist\s+theory
-      | \bak\s+press\b
-      | social\s+ecology
-      | \bbookchin\b
-      | \bkropotkin\b
-      | emma\s+goldman
-      | \bwobblies\b
-      | industrial\s+workers\s+of\s+the\s+world
-      | \bi\.?w\.?w\.?\b
-      | worker(?:s)?(?:'s|s')?\s+self[\s-]?management
-      | seize\s+the\s+means
-      | commons[\s-]based
-      | solidarity\s+economy
-      | anti[\s-]?authoritarian
-      | without\s+(?:bosses|rulers|masters)
-      | abolish\s+(?:the\s+)?(?:state|capitalism|wage\s+labor|prisons?)
-    )
-    """,
-    re.IGNORECASE | re.VERBOSE,
-)
-
-# Ambiguous terms that need anarchist / anti-capitalist context (or AI).
-_AMBIGUOUS_TERM = re.compile(
-    r"""
-    (?:
-        \banarchy\b
+      | \banarchy\b
       | \blibertarian\b
+      | libertarian\s+socialis(?:m|t)s?
+      | individualist\s+anarch
       | \bautonom(?:y|ous|ist)s?\b
       | direct\s+action
-      | \bmutualism\b
+      | mutual\s+aid
       | \bcommunes?\b
       | decentraliz(?:e|ed|ing|ation)
-      | \bantifa(?:scist)?\b
-      | \bacab\b
-      | \bpunk\b
       | \bcooperatives?\b
       | \bco[\s-]?ops?\b
+      | free\s+association
+      | \breciprocity\b
       | \bsocialis(?:m|t)s?\b
-      | \bcommunis(?:m|t)s?\b
       | free\s+the\s+people
       | no\s+rulers
       | power\s+to\s+the\s+people
+      | without\s+(?:bosses|rulers|masters|landlords)
+      | anti[\s-]?authoritarian
+      | anti[\s-]?capitalis(?:m|t)
     )
     """,
     re.IGNORECASE | re.VERBOSE,
 )
 
 # Context that unlocks ambiguous terms toward keep.
-# Intentionally excludes bare "anarchy" / "anarchist" / "anarchism" — those are
-# either strong positives on their own or the ambiguous term being gated.
-_ANARCHIST_CONTEXT = re.compile(
+# Intentionally excludes bare "anarchy" / "anarchist" / "anarchism" and bare
+# "mutual aid" — those are the ambiguous terms being gated.
+_MUTUALIST_CONTEXT = re.compile(
     r"""
     (?:
-        mutual\s+aid
-      | dual\s+power
-      | anti[\s-]?authoritarian
-      | anti[\s-]?capitalis(?:m|t)
-      | horizontal
-      | prefigurative
-      | without\s+(?:bosses|rulers|masters)
-      | abolish\s+(?:the\s+)?(?:state|capitalism)
-      | \binfoshop\b
-      | \bzines?\b
-      | bookfair
-      | \bwobbl(?:y|ies)\b
-      | \bi\.?w\.?w\.?\b
-      | food\s+not\s+bombs
-      | \bcrimethinc\b
+        \bmutualism\b
+      | \bmutualists?\b
+      | \bproudhon\b
+      | proudhonian
+      | josiah\s+warren
+      | benjamin\s+tucker
+      | william\s+b\.?\s+greene
+      | dyer\s+lum
+      | kevin\s+carson
+      | \bkropotkin\b
+      | center\s+for\s+a\s+stateless\s+society
+      | \bc4ss\b
+      | occupancy[\s-]and[\s-]use
+      | possession\s+(?:not|vs\.?|versus)\s+property
+      | property\s+is\s+theft
+      | mutual\s+credit
+      | free\s+bank(?:ing|s)?
+      | people'?s\s+bank
+      | cost\s+the\s+limit\s+of\s+price
+      | equitable\s+commerce
+      | \bagorism\b
+      | \bagorists?\b
+      | left[\s-]?wing\s+market
+      | market\s+anarch
+      | free[\s-]market\s+anti[\s-]?capital
+      | anti[\s-]?capitalist\s+free[\s-]market
+      | mutualist\s+economics?
       | left[\s-]?libertarian
-      | liberatory
-      | \bcommons\b
-      | expropriat
-      | \bsyndical
-      | no\s+gods?
-      | no\s+masters
-      | no\s+bosses
-      | no\s+rulers
-      | no\s+landlords
     )
     """,
     re.IGNORECASE | re.VERBOSE,
@@ -152,9 +157,14 @@ _ANARCHIST_CONTEXT = re.compile(
 
 # Hard negatives that always win over an otherwise-strong phrase when they
 # clearly indicate right-"libertarian" / ancap / entertainment collisions.
-# Collisions that should not be rescued by a nearby strong anarchist phrase.
-# Plain "anarcho-capitalism" is intentionally absent so critiques like
-# "anarchism is not anarcho-capitalism" can still keep via strong_positive_over_negative.
+# Collisions that should not be rescued by a nearby strong mutualist phrase.
+# Plain "anarcho-capitalism" is intentionally absent from this set so critiques
+# like "mutualism is not anarcho-capitalism" can still keep via
+# strong_positive_over_negative.
+#
+# "Free-market anarchism" is NOT a hard negative: left-wing market anarchists
+# use that phrase. Ancap is caught via Rothbard/Hoppe/Mises/voluntaryism/
+# property-rights anarchism / explicit ancap labels instead.
 _HARD_NEGATIVE_BLOCKS_STRONG = re.compile(
     r"""
     (?:
@@ -169,7 +179,6 @@ _HARD_NEGATIVE_BLOCKS_STRONG = re.compile(
       | \bhoppean\b
       | hans[\s-]hermann\s+hoppe
       | \bvoluntaryism\b
-      | free[\s-]market\s+anarch
       | property[\s-]rights\s+anarch
     )
     """,
@@ -188,7 +197,6 @@ _HARD_NEGATIVE = re.compile(
       | mises\s+institute
       | \bvoluntaryism\b
       | property[\s-]rights\s+anarch
-      | free[\s-]market\s+anarch
       | sons\s+of\s+anarchy
       | anarchy\s+online
       | decentralized\s+(?:finance|exchange|autonomous\s+organization)
@@ -205,7 +213,7 @@ _HARD_NEGATIVE = re.compile(
     re.IGNORECASE | re.VERBOSE,
 )
 
-# Upcoming-event phrasing unlocks high-confidence anarchist venues/projects.
+# Upcoming-event phrasing unlocks high-confidence mutualist venues/projects.
 _EVENT_CUE = re.compile(
     r"""
     \b(?:
@@ -224,20 +232,18 @@ _EVENT_CUE = re.compile(
 _LOCAL_EVENT_VENUE = re.compile(
     r"""
     (?:
-        anarchist\s+bookfair
-      | \binfoshops?\b
-      | food\s+not\s+bombs
-      | free\s+skoo?l
-      | mutual\s+aid\s+(?:distro|clinic|network|hub)
+        mutualis[mt]\s+(?:meetup|reading|circle|conference|forum|bookfair)
+      | mutual\s+credit\s+(?:workshop|teach[\s-]?in|meetup)
+      | free\s+bank(?:ing)?\s+(?:workshop|teach[\s-]?in|meetup)
+      | occupancy[\s-]and[\s-]use
+      | proudhon\s+(?:reading|circle|meetup)
       | really\s+really\s+free\s+market
-      | \bdistro\b.{0,40}\bzines?\b
-      | \bzines?\b.{0,40}\bdistro\b
     )
     """,
     re.IGNORECASE | re.VERBOSE,
 )
 
-# Mutual-aid token used to pair boost/ask vernacular with the strong phrase.
+# Mutual-aid token used to pair boost/ask vernacular with the phrase.
 _MUTUAL_AID_TOKEN = re.compile(
     r'(?:\#mutualaid\b|mutual\s+aid)',
     re.IGNORECASE,
@@ -558,7 +564,7 @@ def match_post(
     gazetteer: Gazetteer | None = None,
     embed: object | None = None,
 ) -> MatchResult:
-    """Return whether a post belongs in the prosocial anarchist feed.
+    """Return whether a post belongs in the mutualism feed.
 
     Decision order: blocklist → allowlist (+ solicit gate) → gazetteer
     other-entity → hard negative / gazetteer local / strong regex →
@@ -643,7 +649,7 @@ def match_post(
         distinct = {re.sub(r'\s+', ' ', h.lower()) for h in ambiguous_hits}
         term = sorted(distinct)[0]
 
-        if _ANARCHIST_CONTEXT.search(place_haystack) or _STRONG_POSITIVE.search(haystack):
+        if _MUTUALIST_CONTEXT.search(place_haystack) or _STRONG_POSITIVE.search(haystack):
             return _maybe_quality_gate(
                 haystack,
                 MatchResult(True, f'ambiguous_with_context:{term}'),

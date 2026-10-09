@@ -30,12 +30,11 @@ def main() -> int:
     password = os.environ.get('PASSWORD')
     # Prefer FEEDGEN_HOSTNAME; HOSTNAME collides with the OS/shell variable.
     hostname = os.environ.get('FEEDGEN_HOSTNAME') or os.environ.get('HOSTNAME')
-    record_name = os.environ.get('RECORD_NAME', 'anarchism')
-    display_name = os.environ.get('DISPLAY_NAME', 'Prosocial Anarchism')
+    record_name = os.environ.get('RECORD_NAME', 'mutualism')
+    display_name = os.environ.get('DISPLAY_NAME', 'Mutualism')
     description = os.environ.get(
         'DESCRIPTION',
-        'Celebrating mutual aid, dual power, and movements that decentralize '
-        'political power and capital.',
+        'Proudhonian mutualism: reciprocity, possession, mutual credit',
     )
     avatar_path = os.environ.get('AVATAR_PATH')
     service_did = os.environ.get('SERVICE_DID') or (f'did:web:{hostname}' if hostname else None)

@@ -5,8 +5,8 @@ negatives / allowlists / soft priors / definitive event+venue hits. Ambiguous
 leftovers — and provisional keeps that look like money asks — are scored here
 on four dimensions via ``deepseek-v4-flash``:
 
-- thematic_fit: prosocial anarchist values alignment
-- positive_valence: constructive / generative tone
+- thematic_fit: Proudhonian mutualism / left-market mutualist alignment
+- positive_valence: constructive / generative tone (hate/violence low)
 - wow: humor, insight, craft, memorability
 - solicit: personal fundraising / extractive money-ask (inverted gate)
 
@@ -47,13 +47,18 @@ VALENCE_WEIGHT = 0.25
 WOW_WEIGHT = 0.30
 
 SYSTEM_PROMPT = """\
-You score Bluesky posts for a curated prosocial anarchist feed that prefers
-high-quality, positive, memorable posts — not personal fundraising.
+You score Bluesky posts for a curated mutualism feed that prefers
+high-quality, constructive, memorable posts — not personal fundraising,
+hate, or violence.
 
-Anarchism here means movements and projects that want to decentralize both
-political power and capital: mutual aid praxis, dual power, horizontal
-organizing, worker autonomy, commons stewardship, anti-authoritarian and
-anti-capitalist practice, and celebrations of those currents.
+Mutualism here means Proudhonian and closely related left-market currents:
+reciprocity, possession / occupancy-and-use, mutual credit, free banking,
+equitable commerce, agorism, free-market anti-capitalism, libertarian
+socialism when framed that way, and Kropotkin. Sibling anarchist tendencies
+(anarcho-communism, syndicalism, Bakuninist collectivism, Bookchin/social
+ecology, Food Not Bombs, IWW, CrimethInc, etc.) are out of scope unless the
+post is substantially about mutualist economics. Bare "mutual aid" without
+mutualist-economics framing is out of scope.
 
 Score each dimension in [0,1] using this shared scale:
 - 0.0–0.29 clear miss / opposite of the dimension
@@ -63,27 +68,31 @@ Score each dimension in [0,1] using this shared scale:
 - 0.85–1.0 strong / exemplary
 
 Dimensions:
-- thematic_fit: how substantially the post is about or celebrating that
-  anarchism (including Food Not Bombs, IWW, infoshops, bookfairs, CrimethInc,
-  AK Press, social ecology) even if it never says "anarchism".
+- thematic_fit: how substantially the post is about or celebrating mutualism
+  / left-market mutualist economics (Proudhon, Tucker, Warren, mutual credit,
+  occupancy-and-use, agorism, C4SS, Kevin Carson, Kropotkin) even if it never
+  says "mutualism".
 - positive_valence: constructive, generative, solidarity-forward tone
-  (practical how-tos, joyful wins, witty demolition of hierarchy). Low for
-  doomspirals, factional pile-ons, or cruelty-as-politics. Grief paired with
-  constructive praxis can still score mid/high.
+  (practical how-tos, joyful wins, witty demolition of hierarchy). Defiance
+  and non-violent resistance can score mid/high. Low for doomspirals,
+  factional pile-ons, cruelty-as-politics, hate, or celebration of violence.
+  Grief paired with constructive praxis can still score mid/high.
 - wow: humor, insight, craft, surprise, or memorable framing. Mid for
   competent on-theme reportage; low for boilerplate slogans and link dumps.
 - solicit: personal / extractive money-ask intensity. HIGH for Venmo/CashApp/
   GoFundMe/PayPal-me asks, "I'm short on rent", "mutual aid request" for an
-  individual. LOW for non-monetary mutual aid (fridge restock, skill share),
-  project updates, or announcing a collective org fundraiser as news (bail
-  fund, FNB kitchen goal) without a personal hardship pitch.
+  individual. LOW for non-monetary mutualist praxis, project updates, or
+  announcing a collective org fundraiser as news without a personal hardship
+  pitch.
 
 Also set keep=false for category errors regardless of scores:
 - anarcho-capitalism / right-"libertarian" market fundamentalism
 - chaos / entertainment "anarchy" with no political content
-- crypto/Web3/DeFi "decentralized" jargon without anarchist values
-- generic left slogans with no anarchist or anti-authoritarian signal
+- crypto/Web3/DeFi "decentralized" jargon without mutualist values
+- generic left or general-anarchist slogans with no mutualist signal
+- sibling anarchist tendencies without mutualist economics
 - authoritarian state-socialist celebration of centralized power
+- hate speech, dehumanization, or celebration / advocacy of violence
 
 Return JSON only with these exact keys:
 {"keep": true|false,
@@ -264,7 +273,7 @@ class DeepSeekClassifier:
             'ambiguous_term': term,
             'instruction': (
                 'Score thematic_fit, positive_valence, wow, and solicit for the '
-                'prosocial anarchist feed quality rubric.'
+                'mutualist feed quality rubric.'
             ),
         }
         body = {
@@ -284,7 +293,7 @@ class DeepSeekClassifier:
             headers={
                 'Authorization': f'Bearer {self.api_key}',
                 'Content-Type': 'application/json',
-                'User-Agent': 'anarchist-bluesky-feed-classifier/0.2',
+                'User-Agent': 'mutualist-bluesky-feed-classifier/0.2',
             },
             method='POST',
         )

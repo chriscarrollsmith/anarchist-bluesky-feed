@@ -27,7 +27,7 @@ def test_evaluate_cases_stratifies_and_respects_gaps() -> None:
     cases = [
         {
             'id': 'tp-text',
-            'text': 'Hello from the mutual aid fridge',
+            'text': 'Hello from the mutual credit clearing',
             'expected': True,
             'signal': 'text',
             'bucket': 'strong_local',
@@ -35,9 +35,9 @@ def test_evaluate_cases_stratifies_and_respects_gaps() -> None:
             'regression': True,
         },
         {
-            'id': 'fn-author',
+            'id': 'tp-author',
             'text': 'Newsletter is out.',
-            'author_handle': 'crimethinc.com',
+            'author_handle': 'allowlisted.bsky.social',
             'expected': True,
             'signal': 'author',
             'bucket': 'local_org_no_placename',
@@ -55,7 +55,7 @@ def test_evaluate_cases_stratifies_and_respects_gaps() -> None:
             'regression': False,
         },
     ]
-    report = evaluate_cases(cases)
+    report = evaluate_cases(cases, allowlist_handles={'allowlisted.bsky.social'})
     assert report.overall.tp == 2
     assert report.overall.fn == 1
     assert report.by_split['dev'].tp == 1
@@ -86,7 +86,7 @@ def test_eval_cases_have_required_strata() -> None:
 
     assert 'author' in signals
     assert 'event' in signals
-    assert 'local_org_no_placename' in buckets
+    assert 'author_blocklist' in buckets
     assert 'author_soft_prior' in buckets
     assert 'regional_event' in buckets
     assert 'ambiguous_classifier' in buckets
@@ -105,15 +105,12 @@ def test_eval_cases_have_required_strata() -> None:
     assert solicit_cases, 'expected solicit_reject eval cases'
     assert all(c.get('expected') is False for c in solicit_cases)
 
-    fn_author = [
-        c
-        for c in cases
-        if c.get('bucket') == 'local_org_no_placename' and c.get('expected') is True
-    ]
+    author_cases = [c for c in cases if c.get('signal') == 'author']
     fn_event = [
         c for c in cases if c.get('bucket') == 'regional_event' and c.get('expected') is True
     ]
-    assert len(fn_author) >= 3
-    assert len(fn_event) >= 3
-    assert any(c.get('split') == 'holdout' for c in fn_author)
+    assert len(author_cases) >= 3
+    assert len(fn_event) >= 2
+    assert any(c.get('bucket') == 'author_soft_prior' for c in author_cases)
+    assert any(c.get('bucket') == 'author_blocklist' for c in author_cases)
     assert any(c.get('split') == 'holdout' for c in fn_event)

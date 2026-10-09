@@ -11,7 +11,7 @@ primary_region = "ewr"
   FEEDGEN_HOSTNAME = "anarchist-bluesky-feed.fly.dev"
   HOSTNAME = "anarchist-bluesky-feed.fly.dev"
   # Replace after publish_feed.py creates the generator record.
-  FEED_URI = "at://did:plc:xndplob7sicvv6balxdzh3jk/app.bsky.feed.generator/anarchism"
+  FEED_URI = "at://did:plc:xndplob7sicvv6balxdzh3jk/app.bsky.feed.generator/mutualism"
   SERVICE_DID = "did:web:anarchist-bluesky-feed.fly.dev"
   DATABASE_PATH = "/data/feed_database.db"
   IGNORE_REPLY_POSTS = "true"

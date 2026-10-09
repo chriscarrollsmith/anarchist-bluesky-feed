@@ -172,37 +172,41 @@ def test_admit_grades_composite_floor() -> None:
 
 
 def test_match_post_uses_classifier_for_ambiguous() -> None:
-    fake = FakeClassifier(keep_terms=frozenset({'punk'}))
-    strong = match_post('Anarchists without bosses build mutual aid networks.')
+    fake = FakeClassifier(keep_terms=frozenset({'co-op'}))
+    strong = match_post('Mutual credit clearing beats landlord title.')
     assert strong.matched is True
     assert strong.reason == 'strong_positive'
 
-    keep_ai = match_post('Local punk show was chaotic fun.', classifier=fake)
+    keep_ai = match_post(
+        'Our co-op shares tools citywide and refuses landlords.',
+        classifier=fake,
+    )
     assert keep_ai.matched is True
-    assert keep_ai.reason == 'classifier:ambiguous:punk'
+    assert keep_ai.reason.startswith('classifier:ambiguous:')
 
 
 def test_solicit_cue_vetoes_strong_positive_without_classifier() -> None:
-    assert looks_like_solicit('Mutual aid request — please Venmo @me for rent')
-    result = match_post('Mutual aid request — please Venmo @me for rent')
+    text = 'Mutualism and mutual credit are great — please Venmo @me for rent #mutualaid'
+    assert looks_like_solicit(text)
+    result = match_post(text)
     assert result.matched is False
     assert result.reason.startswith('solicit_cue_unscored:')
 
 
 def test_solicit_cue_passes_when_classifier_clears() -> None:
-    fake = FakeClassifier(keep_substrings=('Food Not Bombs',), solicit=0.1)
+    fake = FakeClassifier(keep_substrings=('mutual credit',), solicit=0.1)
     result = match_post(
-        'Food Not Bombs kitchen goal: donate via our collective PayPal.',
+        'Mutual credit association goal: donate via our collective PayPal.',
         classifier=fake,
     )
     assert result.matched is True
-    assert result.reason in {'strong_positive', 'entity_local:food_not_bombs'}
+    assert result.reason == 'strong_positive'
 
 
 def test_solicit_cue_drops_when_classifier_flags_solicit() -> None:
     fake = FakeClassifier(reject_substrings=('Venmo me',))
     result = match_post(
-        'Anarchist mutual aid — Venmo me if you can spare anything for rent.',
+        'Mutualism mutual credit — Venmo me if you can spare anything for rent.',
         classifier=fake,
     )
     assert result.matched is False
@@ -226,7 +230,6 @@ def test_helpsky_hashtag_soup_is_solicit_shaped() -> None:
     assert looks_like_solicit(text)
     result = match_post(text)
     assert result.matched is False
-    assert result.reason.startswith('solicit_cue_unscored:')
 
 
 def test_opaque_quote_with_mutual_aid_is_solicit_shaped() -> None:
@@ -239,10 +242,13 @@ def test_opaque_quote_with_mutual_aid_is_solicit_shaped() -> None:
     }
     assert is_opaque_record_embed(embed)
     assert looks_like_solicit('#MutualAid #HelpSky', embed=embed)
-    # Without HelpSky / money cues, opaque quote + mutual aid still gates.
+    # Bare mutual aid + opaque quote is solicit-shaped, but without a
+    # provisional keep (mutual aid alone is not strong) it drops earlier.
     bare = match_post('Mutual aid Friday', embed=embed)
     assert bare.matched is False
-    assert bare.reason.startswith('solicit_cue_unscored:')
+    strong_solicit = match_post('Mutualism mutual credit #MutualAid Friday', embed=embed)
+    assert strong_solicit.matched is False
+    assert strong_solicit.reason.startswith('solicit_cue_unscored:')
 
 
 def test_hydrated_quote_uses_nested_text_not_opaque() -> None:
@@ -252,7 +258,7 @@ def test_hydrated_quote_uses_nested_text_not_opaque() -> None:
             'uri': 'at://did:plc:quoted000000000000000001/app.bsky.feed.post/3example',
             'cid': 'bafyreiopaquequote000000000000000000000000000000001',
             'value': {
-                'text': 'Neighborhood mutual aid fridge restocked tonight.',
+                'text': 'Neighborhood mutual credit circle restocked tonight.',
                 '$type': 'app.bsky.feed.post',
             },
         },
@@ -262,12 +268,11 @@ def test_hydrated_quote_uses_nested_text_not_opaque() -> None:
     assert looks_like_solicit('#HelpSky #MutualAid', embed=embed)
 
 
-def test_mutual_aid_praxis_without_ask_still_keeps() -> None:
+def test_mutual_aid_praxis_without_mutualist_economics_drops() -> None:
     result = match_post(
         'Neighborhood mutual aid fridge restocked — take what you need, share what you can.'
     )
-    assert result.matched is True
-    assert result.reason == 'strong_positive'
+    assert result.matched is False
 
 
 def test_classifier_model_stub_never_keeps() -> None:

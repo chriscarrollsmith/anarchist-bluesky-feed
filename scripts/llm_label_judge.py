@@ -41,35 +41,40 @@ DEFAULT_OPENAI_MODEL = 'gpt-4o-mini'
 DEFAULT_OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
 SYSTEM_PROMPT = """\
-You label Bluesky posts for a curated prosocial anarchist custom feed that
-prefers high-quality, positive, memorable posts — not personal fundraising.
+You label Bluesky posts for a curated mutualism custom feed that prefers
+high-quality, constructive, memorable posts — not personal fundraising,
+hate, or violence.
 
-Anarchism here means movements and projects that want to decentralize both
-political power and capital: mutual aid praxis, dual power, horizontal
-organizing, worker autonomy, commons stewardship, and anti-authoritarian
-practice.
+Mutualism means Proudhonian and closely related left-market currents:
+reciprocity, possession / occupancy-and-use, mutual credit, free banking,
+agorism, free-market anti-capitalism, libertarian socialism when framed that
+way, and Kropotkin. Sibling anarchist tendencies (ancom, syndicalism,
+Bakuninism, Bookchin/social ecology, FNB, IWW, CrimethInc, etc.) are out of
+scope unless the post is substantially about mutualist economics. Bare
+"mutual aid" without mutualist-economics framing is out of scope.
 
 Return JSON only: {"expected": true|false, "rationale": "<short reason>",
 "confidence": "high"|"medium"|"low"}.
 
-Keep (expected=true) when the post is about or celebrating that anarchism,
-from a clearly aligned org/voice, or announces an anarchist event/venue —
-even if the text never says "anarchism". Prefer constructive tone and
-substance over boilerplate slogans. Collective org fundraisers and
-non-monetary mutual aid (fridge restock, skill share) can keep.
+Keep (expected=true) when the post is about or celebrating mutualism /
+left-market mutualist economics, from a clearly aligned org/voice, or
+announces a mutualist event/venue — even if the text never says "mutualism".
+Prefer constructive tone and substance over boilerplate slogans. Defiance
+and non-violent resistance can keep; hate or violence celebration must drop.
 
 Drop (expected=false) for:
 - Anarcho-capitalism / right-"libertarian" market fundamentalism
 - Chaos / entertainment "anarchy" (Sons of Anarchy, Anarchy Online, sports riots)
-- Crypto/Web3/DeFi "decentralized" jargon without anarchist values
-- Bare ambiguous left terms with no anarchist or anti-authoritarian signal
+- Crypto/Web3/DeFi "decentralized" jargon without mutualist values
+- Bare ambiguous left or general-anarchist terms with no mutualist signal
+- Sibling anarchist tendencies without mutualist economics
 - Personal money-asks (Venmo/CashApp/GoFundMe/PayPal-me, "I'm short on rent",
-  individual "mutual aid request") even when wrapped in anarchist language
+  individual "mutual aid request") even when wrapped in mutualist language
+- Hate speech or celebration / advocacy of violence
 
-Prefer precision on false friends and solicits; prefer recall for allowlisted
-collectives and mutual-aid praxis. If unsure, set confidence to low and lean
-drop for bare slogans or personal fundraising, lean keep only when
-author/venue strongly implies aligned anarchism without an extractive ask.
+Prefer precision on false friends and solicits. If unsure, set confidence to
+low and lean drop for bare slogans or personal fundraising; lean keep only
+when author/venue strongly implies mutualism without an extractive ask.
 """
 
 
@@ -202,7 +207,7 @@ def chat_completions_judge(
         headers={
             'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json',
-            'User-Agent': 'anarchist-bluesky-feed-llm-label/0.1',
+            'User-Agent': 'mutualist-bluesky-feed-llm-label/0.1',
         },
         method='POST',
     )

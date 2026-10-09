@@ -12,4 +12,8 @@
 #   uv run python scripts/screen_allowlist_candidates.py --from-file …
 #
 # Only include handles that resolve on Bluesky AppView.
-# Empty until mutualist voices are curated.
+
+# --- Publishers / writers ---
+c4ssdotorg.bsky.social
+kevincarson1.bsky.social
+freetobealiberal.blog

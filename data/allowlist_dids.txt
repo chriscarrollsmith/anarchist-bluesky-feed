@@ -2,5 +2,10 @@
 # Generated from allowlist_handles.txt — re-run:
 #   uv run python scripts/resolve_allowlist_dids.py
 # Do not hand-edit DIDs unless a handle is unstable; prefer updating handles.
-#
-# Empty until mutualist handles are curated in allowlist_handles.txt.
+
+# c4ssdotorg.bsky.social
+did:plc:oqk3mhuwckchmpvisdgioupb
+# kevincarson1.bsky.social
+did:plc:bdpfgw7uuapstqyydcazmz2i
+# freetobealiberal.blog
+did:plc:zkf6r3j5gr4e2czv7q74nbth

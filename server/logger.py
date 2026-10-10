@@ -9,4 +9,4 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s [%(name)s] %(message)s',
 )
 
-logger = logging.getLogger('anarchist-bluesky-feed')
+logger = logging.getLogger('mutualist-bluesky-feed')

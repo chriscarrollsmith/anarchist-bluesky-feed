@@ -3,7 +3,7 @@
 ## Cursor Cloud specific instructions
 
 Single Python 3.14 service: a self-hosted Bluesky custom feed generator for
-prosocial anarchist content. See `README.md` for the full architecture and
+Proudhonian mutualism. See `README.md` for the full architecture and
 command reference. Dependencies are managed with [uv](https://docs.astral.sh/uv/)
 (`pyproject.toml` + `uv.lock`); the project virtualenv lives at `.venv`.
 

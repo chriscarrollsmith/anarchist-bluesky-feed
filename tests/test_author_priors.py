@@ -23,8 +23,8 @@ def isolated_db() -> Any:
 def test_is_strong_match_reason() -> None:
     assert is_strong_match_reason('strong_positive')
     assert is_strong_match_reason('ambiguous_with_context:direct action')
-    assert is_strong_match_reason('event_local_venue:infoshop')
-    assert is_strong_match_reason('entity_local:food_not_bombs')
+    assert is_strong_match_reason('event_local_venue:mutualist reading circle')
+    assert is_strong_match_reason('entity_local:c4ss')
     assert not is_strong_match_reason('allowlist_did')
     assert not is_strong_match_reason('entity_other:anarcho_capitalism')
     assert not is_strong_match_reason('soft_prior_ambiguous:punk')

@@ -193,7 +193,7 @@ def test_process_event_indexes_and_preserves_created_order(tmp_path) -> None:
             'cid': 'bafygap1',
             'author': {'did': 'did:plc:author'},
             'record': {
-                'text': 'Mutual aid restock tonight',
+                'text': 'Mutual credit clearing tonight',
                 'createdAt': '2026-07-30T18:30:00.000Z',
                 'langs': ['en'],
             },
@@ -232,7 +232,7 @@ def test_process_event_dry_run_does_not_write(tmp_path) -> None:
             'cid': 'bafydry1',
             'author': {'did': 'did:plc:author'},
             'record': {
-                'text': 'Anarchist bookfair meetup',
+                'text': 'Mutualist reading circle meetup',
                 'createdAt': '2026-07-30T19:00:00.000Z',
                 'langs': ['en'],
             },

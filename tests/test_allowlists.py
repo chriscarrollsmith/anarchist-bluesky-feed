@@ -20,15 +20,12 @@ def test_load_list_file_skips_comments_and_blanks(tmp_path: Path) -> None:
     assert load_list_file(path) == ['alpha', 'Beta']
 
 
-def test_production_allowlists_are_nonempty_and_aligned() -> None:
+def test_production_allowlists_are_aligned() -> None:
     handles = load_allowlist_handles()
     dids = load_allowlist_dids()
-    assert handles
-    assert dids
+    # Empty is valid until mutualist voices are curated; keep DID/handle counts aligned.
     assert all(h == h.lower() for h in handles)
     assert all(d.startswith('did:') for d in dids)
-    # Every checked-in DID should correspond to a curated handle (file comments).
-    # Count equality keeps the resolve script honest after handle edits.
     assert len(dids) == len(handles)
 
 

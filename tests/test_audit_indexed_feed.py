@@ -44,7 +44,7 @@ def test_evaluate_post_drops_replies_when_configured() -> None:
         'uri': 'at://did:plc:x/app.bsky.feed.post/1',
         'author': {'did': 'did:plc:x', 'handle': 'x.bsky.social'},
         'record': {
-            'text': 'Mutual aid tonight',
+            'text': 'Mutual credit tonight',
             'reply': {'parent': {'uri': 'at://did:plc:x/app.bsky.feed.post/0'}},
         },
     }
@@ -63,7 +63,7 @@ def test_evaluate_post_keeps_strong_local() -> None:
     post = {
         'uri': 'at://did:plc:x/app.bsky.feed.post/1',
         'author': {'did': 'did:plc:x', 'handle': 'x.bsky.social'},
-        'record': {'text': 'Mutual aid fridge restocked tonight'},
+        'record': {'text': 'Mutual credit clearing restocked tonight'},
     }
     matched, reason = evaluate_post(
         post,
@@ -80,7 +80,7 @@ def test_evaluate_post_drops_blocklisted_author() -> None:
     post = {
         'uri': 'at://did:plc:blocked/app.bsky.feed.post/1',
         'author': {'did': 'did:plc:blocked', 'handle': 'blocked.bsky.social'},
-        'record': {'text': 'Mutual aid fridge restocked tonight'},
+        'record': {'text': 'Mutual credit clearing restocked tonight'},
     }
     matched, reason = evaluate_post(
         post,

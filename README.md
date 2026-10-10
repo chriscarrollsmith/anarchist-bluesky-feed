@@ -1,6 +1,12 @@
-# Prosocial Anarchist Bluesky Feed
+# Mutualist Bluesky Feed
 
-Self-hosted Bluesky custom feed that aggregates and celebrates **prosocial anarchist** content — mutual aid, dual power, horizontal organizing, and movements that want to decentralize both political power and capital.
+Self-hosted Bluesky custom feed that aggregates and celebrates **Proudhonian
+mutualism** — reciprocity, possession, mutual credit — plus closely related
+left-market currents (agorism, free-market anti-capitalism, libertarian
+socialism when framed that way). Kropotkin is in scope; sibling anarchist
+tendencies (ancom, syndicalism, Bakuninism, FNB/IWW/CrimethInc, etc.) are not.
+Bare mutual aid keeps only when paired with mutualist economics. The feed aims
+to stay hate- and violence-free; defiance and non-violent resistance are fine.
 
 Architecture forked from [capital-region-feed](https://github.com/chriscarrollsmith/capital-region-feed).
 
@@ -39,11 +45,16 @@ solicit-shaped posts are dropped.
 
 **Keep** when:
 
-- Strong phrases (`anarchism`, `mutual aid`, `dual power`, `Food Not Bombs`, `IWW`, `CrimethInc`, `AK Press`, …) and not a personal money-ask
-- Ambiguous terms (`anarchy`, `direct action`, `libertarian`, `co-op`, …) with anarchist context
-- Author is allowlisted (`data/allowlist_handles.txt` / `allowlist_dids.txt`) and not a personal money-ask
+- Strong phrases (`mutualism`, `Proudhon`, `mutual credit`, `occupancy-and-use`,
+  `agorism`, `free-market anti-capitalism`, `Kropotkin`, `C4SS`, …) and not a
+  personal money-ask
+- Ambiguous terms (`anarchism`, `mutual aid`, `libertarian socialism`, `co-op`,
+  …) with **mutualist** context (not general-anarchist context)
+- Author is allowlisted (`data/allowlist_handles.txt` / `allowlist_dids.txt`) and
+  not a personal money-ask
 - Soft prior authors (repeated strong matches) use bare ambiguous terms
-- Event phrasing + anarchist venue/project (`infoshop`, `bookfair`, `free skol`, …)
+- Event phrasing + mutualist venue/project (`mutualist reading circle`,
+  `Really Really Free Market`, …)
 - DeepSeek (`deepseek-v4-flash`) clears the quality rubric gates on an ambiguous leftover
 
 **Quality rubric** (see `server/classifier.py`):
@@ -57,7 +68,8 @@ solicit-shaped posts are dropped.
 | composite `0.45·theme + 0.25·valence + 0.30·wow` | ≥ `CLASSIFIER_COMPOSITE_MIN` (0.68) |
 
 Personal Venmo/CashApp hardship asks score high on `solicit` and are dropped.
-Collective org fundraisers and non-monetary mutual aid praxis can still keep.
+Hate / violence celebration is a category reject. Collective org fundraisers and
+non-monetary mutualist praxis can still keep.
 
 **Drop** when the author is blocklisted (`data/blocklist_handles.txt` /
 `blocklist_dids.txt`), even if the text would otherwise keep.
@@ -66,7 +78,9 @@ Collective org fundraisers and non-monetary mutual aid praxis can still keep.
 
 - Anarcho-capitalism / ancap / Rothbard–Hoppe / Mises Institute framing
 - Sons of Anarchy, Anarchy Online, “state of anarchy” chaos news
-- DeFi / Web3 / NFT “decentralized” jargon without anarchist values
+- DeFi / Web3 / NFT “decentralized” jargon without mutualist values
+- Sibling anarchist tendencies without mutualist economics
+- Bare mutual aid without mutualist-economics framing
 - Personal fundraising wrapped as “mutual aid”
 
 ## Local setup
@@ -80,7 +94,7 @@ cp .env.example .env
 # FEEDGEN_HOSTNAME=localhost
 # SERVICE_DID=did:web:localhost
 # DATABASE_PATH=./feed_database.db
-# FEED_URI=at://did:plc:test/app.bsky.feed.generator/anarchism
+# FEED_URI=at://did:plc:test/app.bsky.feed.generator/mutualism
 # CLASSIFIER_ENABLED=false   # optional offline
 # DEEPSEEK_API_KEY=…         # required when CLASSIFIER_ENABLED=true
 ```
@@ -113,16 +127,25 @@ Endpoints:
 On your machine (not in a cloud agent), with a Bluesky app password:
 
 ```bash
-# HANDLE, PASSWORD, FEEDGEN_HOSTNAME, RECORD_NAME, DISPLAY_NAME, DESCRIPTION
+# HANDLE, PASSWORD, FEEDGEN_HOSTNAME, RECORD_NAME=mutualism, DISPLAY_NAME, DESCRIPTION
 uv run python publish_feed.py
 ```
 
-Put the printed URI into `FEED_URI` / Fly env.
+Put the printed URI into `FEED_URI` / Fly env. That creates
+`…/app.bsky.feed.generator/mutualism`. Delete the old `…/anarchism` generator
+record from the same account when you no longer want it listed:
+
+```bash
+uv run python unpublish_feed.py anarchism
+```
 
 ## Deploy on Fly.io
 
+The live Fly app hostname may still be `anarchist-bluesky-feed.fly.dev` until
+you create a renamed app; `FEED_URI` should point at the `mutualism` rkey.
+
 ```bash
-fly apps create anarchist-bluesky-feed   # once
+fly apps create mutualist-bluesky-feed   # optional rename; or keep existing app
 fly volumes create feed_data --region ewr --size 1
 fly secrets set DEEPSEEK_API_KEY=…
 fly deploy

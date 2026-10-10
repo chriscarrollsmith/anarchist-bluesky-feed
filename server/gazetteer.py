@@ -1,4 +1,4 @@
-"""Checked-in entity gazetteer for anarchist topic disambiguation."""
+"""Checked-in entity gazetteer for mutualist topic disambiguation."""
 
 from __future__ import annotations
 

@@ -25,7 +25,7 @@ _hostname = os.environ.get('FEEDGEN_HOSTNAME') or os.environ.get('HOSTNAME')
 if not _hostname or _hostname == 'cursor':
     raise RuntimeError(
         'Set FEEDGEN_HOSTNAME (or HOSTNAME) to your public feedgen hostname '
-        '(e.g. anarchist-bluesky-feed.fly.dev).'
+        '(e.g. mutualist-bluesky-feed.fly.dev).'
     )
 HOSTNAME: str = _hostname
 

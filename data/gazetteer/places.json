@@ -3,28 +3,38 @@
   "notes": "Surface-form → topic entity map. region=local keeps; region=other drops. Longest match wins.",
   "entities": [
     {
-      "id": "food_not_bombs",
+      "id": "c4ss",
       "region": "local",
+      "surfaces": ["center for a stateless society", "c4ss"]
+    },
+    {
+      "id": "mutualism",
+      "region": "local",
+      "surfaces": ["proudhonian mutualism"]
+    },
+    {
+      "id": "food_not_bombs",
+      "region": "other",
       "surfaces": ["food not bombs", "foodnotbombs"]
     },
     {
       "id": "crimethinc",
-      "region": "local",
+      "region": "other",
       "surfaces": ["crimethinc", "crimeth.inc"]
     },
     {
       "id": "ak_press",
-      "region": "local",
+      "region": "other",
       "surfaces": ["ak press"]
     },
     {
       "id": "black_rose_anarchist_federation",
-      "region": "local",
+      "region": "other",
       "surfaces": ["black rose anarchist federation", "black rose federation"]
     },
     {
       "id": "institute_for_anarchist_studies",
-      "region": "local",
+      "region": "other",
       "surfaces": ["institute for anarchist studies"]
     },
     {

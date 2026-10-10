@@ -41,22 +41,23 @@ sys.path.insert(0, str(ROOT))
 from server.allowlists import load_allowlist_dids  # noqa: E402
 
 DEFAULT_API_HOST = 'https://api.bsky.app'
-USER_AGENT = 'anarchist-bluesky-feed-backfill/0.1 (+https://github.com/chriscarrollsmith/anarchist-bluesky-feed)'
+USER_AGENT = 'mutualist-bluesky-feed-backfill/0.1 (+https://github.com/chriscarrollsmith/mutualist-bluesky-feed)'
 
-# High-precision place / venue queries for AppView search (latest sort).
+# High-precision mutualist queries for AppView search (latest sort).
 DEFAULT_SEARCH_QUERIES = (
-    'anarchism',
-    'anarchist',
-    'mutual aid',
-    'dual power',
-    'Food Not Bombs',
-    'anarcho-syndicalism',
-    'infoshop',
-    'anarchist bookfair',
-    'CrimethInc',
-    'AK Press',
-    '#anarchism',
-    'IWW union',
+    'mutualism',
+    'mutualist',
+    'Proudhon',
+    'mutual credit',
+    'occupancy and use',
+    'agorism',
+    'free-market anti-capitalism',
+    'left-wing market anarchism',
+    'Kropotkin',
+    'Benjamin Tucker',
+    'Josiah Warren',
+    'C4SS',
+    '#mutualism',
 )
 
 JsonObject = dict[str, Any]

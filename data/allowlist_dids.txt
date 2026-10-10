@@ -3,13 +3,9 @@
 #   uv run python scripts/resolve_allowlist_dids.py
 # Do not hand-edit DIDs unless a handle is unstable; prefer updating handles.
 
-# crimethinc.com
-did:plc:usktoienjig6rm5cxm46j3zl
-# akpress.org
-did:plc:x37u2mgqv5n2u5s23ufus5wu
-# burningbooks.bsky.social
-did:plc:pso232dx45hajtjxhowdbjyn
-# portlandiww.bsky.social
-did:plc:rbe7a24mnjig2gsefz4h4vl3
-# food-not-bombs-rp.bsky.social
-did:plc:ax3htrnu4uaqh7akqimeppag
+# c4ssdotorg.bsky.social
+did:plc:oqk3mhuwckchmpvisdgioupb
+# kevincarson1.bsky.social
+did:plc:bdpfgw7uuapstqyydcazmz2i
+# freetobealiberal.blog
+did:plc:zkf6r3j5gr4e2czv7q74nbth

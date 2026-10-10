@@ -5,7 +5,7 @@ os.environ.setdefault('FEEDGEN_HOSTNAME', 'test.example')
 os.environ.setdefault('HOSTNAME', 'test.example')
 os.environ.setdefault(
     'FEED_URI',
-    'at://did:plc:test/app.bsky.feed.generator/anarchism',
+    'at://did:plc:test/app.bsky.feed.generator/mutualism',
 )
 os.environ.setdefault('DATABASE_PATH', ':memory:')
 # Unit tests stay offline — live DeepSeek scoring is covered with FakeClassifier.

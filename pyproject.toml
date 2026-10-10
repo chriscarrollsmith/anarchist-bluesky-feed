@@ -1,7 +1,7 @@
 [project]
-name = "anarchist-bluesky-feed"
+name = "mutualist-bluesky-feed"
 version = "0.1.0"
-description = "Self-hosted Bluesky custom feed celebrating prosocial anarchist content"
+description = "Self-hosted Bluesky custom feed celebrating Proudhonian mutualism"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [

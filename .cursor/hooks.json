@@ -3,7 +3,7 @@
   "hooks": {
     "beforeShellExecution": [
       {
-        "command": ".cursor/hooks/pre-commit-checks.sh",
+        "command": "uv run python .cursor/hooks/pre_commit_checks.py",
         "matcher": "git\\s+commit",
         "timeout": 120,
         "failClosed": true

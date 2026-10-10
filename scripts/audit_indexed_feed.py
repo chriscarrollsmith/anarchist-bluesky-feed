@@ -51,7 +51,7 @@ from server.allowlists import (  # noqa: E402
 from server.matcher import extract_alt_text, match_post  # noqa: E402
 
 DEFAULT_API_HOST = 'https://api.bsky.app'
-USER_AGENT = 'anarchist-bluesky-feed-audit/0.1 (+https://github.com/chriscarrollsmith/anarchist-bluesky-feed)'
+USER_AGENT = 'mutualist-bluesky-feed-audit/0.1 (+https://github.com/chriscarrollsmith/mutualist-bluesky-feed)'
 GET_POSTS_BATCH = 25
 
 
